@@ -10,11 +10,20 @@ dependencyManagement {
     }
 }
 
+val mysqlConnectorJavaVersion = "8.0.33"
+val p6SpySpringBootStarterVersion = "1.11.0"
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("com.h2database:h2")
+
+    // mysql
+    implementation("mysql:mysql-connector-java:$mysqlConnectorJavaVersion")
+
+    // 쿼리 노출 모듈
+    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:$p6SpySpringBootStarterVersion")
+
     detektPlugins("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21")
 }
 

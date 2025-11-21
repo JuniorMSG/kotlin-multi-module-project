@@ -1,4 +1,4 @@
-package com.core.jvm
+package com.ms.multi.jvm
 
 /**
  * JVM 메모리 구조를 시뮬레이션하는 코드

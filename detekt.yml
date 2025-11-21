@@ -137,6 +137,8 @@ complexity:
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     ignoreAnnotatedParameter: []
+    excludes:
+      - '**/domain/**'
   MethodOverloading:
     active: false
     threshold: 6

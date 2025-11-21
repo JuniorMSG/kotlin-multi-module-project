@@ -1,4 +1,4 @@
-package com.core.jvm
+package com.ms.multi.jvm
 
 /**
  * JVM 바이트코드 수준의 메서드 호출 시뮬레이션

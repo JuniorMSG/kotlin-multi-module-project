@@ -1,4 +1,4 @@
-package com.core
+package com.ms.multi
 
 class HelloCore {
     fun hello() {

@@ -1,4 +1,4 @@
-package com.core.jvm
+package com.ms.multi.jvm
 
 /**
  * 🔬 BigDecimal vs Int/Double 메모리 생성 실험
@@ -16,19 +16,19 @@ fun main() {
     println("🔬 BigDecimal vs Primitive 타입 메모리 생성 비교")
     println("=".repeat(80))
     println()
-	
+
     // 1️⃣ BigDecimal: 1만개의 객체 생성
     testBigDecimalLoop()
     println()
-	
+
     // 2️⃣ Int (Primitive): 1개의 메모리 경로만 사용
     testIntLoop()
     println()
-	
+
     // 3️⃣ Double (Primitive): 1개의 메모리 경로만 사용
     testDoubleLoop()
     println()
-	
+
     // 4️⃣ 성능 비교
     performanceComparison()
     /**
@@ -68,14 +68,14 @@ fun main() {
 fun testBigDecimalLoop() {
     println("💰 1. BigDecimal (Immutable 객체)")
     println("-".repeat(80))
-	
+
     var sum = BigDecimal.ZERO
     val addresses = mutableListOf<String>()
-	
+
     println("🔄 10,000번 반복 시작... 1.")
     repeat(10_000) { i ->
         sum = sum.add(BigDecimal.ONE) // ❌ 매번 새로운 BigDecimal 객체 생성!
-		
+
         // 처음 5개만 메모리 주소 출력
         if (i < 5) {
             val address = System.identityHashCode(sum).toString(16)
@@ -83,7 +83,7 @@ fun testBigDecimalLoop() {
             println("  반복 ${i + 1}: sum = $sum, 메모리 주소 = 0x$address")
         }
     }
-	
+
     println()
     println("📊 결과 분석: 1")
     println("   - 총 생성된 객체 수: 약 10,000개 ❌")
@@ -102,21 +102,21 @@ fun testBigDecimalLoop() {
 fun testIntLoop() {
     println("⚡ 2. Int (Primitive 타입)")
     println("-".repeat(80))
-	
+
     var sum = 0
-	
+
     println("🔄 10,000번 반복 시작... . 2")
     println("   메모리 위치: Stack (고정)")
     println("   메모리 주소: 변하지 않음 ✅")
-	
+
     repeat(10_000) { i ->
         sum = sum + 1 // ✅ 같은 메모리 위치에서 값만 변경!
-		
+
         if (i < 5) {
             println("  반복 ${i + 1}: sum = $sum")
         }
     }
-	
+
     println()
     println("📊 결과 분석: 2 ")
     println("   - 총 생성된 객체 수: 0개 ✅")
@@ -132,21 +132,21 @@ fun testIntLoop() {
 fun testDoubleLoop() {
     println("⚡ 3. Double (Primitive 타입)")
     println("-".repeat(80))
-	
+
     var sum = 0.0
-	
+
     println("🔄 10,000번 반복 시작...3")
     println("   메모리 위치: Stack (고정)")
     println("   메모리 주소: 변하지 않음 ✅")
-	
+
     repeat(10_000) { i ->
         sum = sum + 1.0 // ✅ 같은 메모리 위치에서 값만 변경!
-		
+
         if (i < 5) {
             println("  반복 ${i + 1}: sum = $sum")
         }
     }
-	
+
     println()
     println("📊 결과 분석: 3 ")
     println("   - 총 생성된 객체 수: 0개 ✅")
@@ -162,51 +162,51 @@ fun testDoubleLoop() {
 fun performanceComparison() {
     println("🏁 4. 성능 비교 (100,000번 반복)")
     println("-".repeat(80))
-	
+
     val iterations = 2000000000
-	
+
     // BigDecimal 성능 측정
     println("💰 BigDecimal 측정 중...")
     var bigDecimalSum = BigDecimal.ZERO
     val bigDecimalStart = System.nanoTime()
-	
+
     repeat(iterations) {
         bigDecimalSum = bigDecimalSum.add(BigDecimal.ONE)
     }
-	
+
     val bigDecimalTime = (System.nanoTime() - bigDecimalStart) / 1_000_000.0
     println("   시간: ${bigDecimalTime}ms")
     println("   결과: $bigDecimalSum")
     println()
-	
+
     // Int 성능 측정
     println("⚡ Int 측정 중...")
     var intSum = 0
     val intStart = System.nanoTime()
-	
+
     repeat(iterations) {
         intSum = intSum + 1
     }
-	
+
     val intTime = (System.nanoTime() - intStart) / 1_000_000.0
     println("   시간: ${intTime}ms")
     println("   결과: $intSum")
     println()
-	
+
     // Double 성능 측정
     println("⚡ Double 측정 중...")
     var doubleSum = 0.0
     val doubleStart = System.nanoTime()
-	
+
     repeat(iterations) {
         doubleSum = doubleSum + 1.0
     }
-	
+
     val doubleTime = (System.nanoTime() - doubleStart) / 1_000_000.0
     println("   시간: ${doubleTime}ms")
     println("   결과: $doubleSum")
     println()
-	
+
     // 비교 결과
     println("📊 성능 비교 결과:")
     println("-".repeat(80))
@@ -214,7 +214,7 @@ fun performanceComparison() {
     println("   Int:        ${intTime}ms (약 ${String.format("%.0f", bigDecimalTime / intTime)}배 빠름)")
     println("   Double:     ${doubleTime}ms (약 ${String.format("%.0f", bigDecimalTime / doubleTime)}배 빠름)")
     println()
-	
+
     println("💡 결론:")
     println("   - BigDecimal은 매번 새로운 객체를 생성하므로 매우 느림")
     println("   - Int/Double은 Stack에서 직접 연산하므로 매우 빠름")

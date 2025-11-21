@@ -1,4 +1,4 @@
-package com.core.scratch
+package com.ms.multi.scratch
 
 fun main() {
     println("=".repeat(30))
