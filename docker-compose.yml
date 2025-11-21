@@ -1,0 +1,132 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: module-project-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: module
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "13306:3306"  # 3306 -> 13306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: module-project-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "12181:2181"  # 2181 -> 12181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: module-project-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "19092:9092"  # 9092 -> 19092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:19092,PLAINTEXT_INTERNAL://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server kafka:9093 --list" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: module-project-kafka-ui
+    ports:
+      - "18090:8080"  # 8090 -> 18090
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=module-local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9093
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+
+  minio:
+    image: minio/minio:latest
+    container_name: module-project-minio
+    ports:
+      - "19000:9000"  # 9000 -> 19000 (S3 API)
+      - "19001:9001"  # 9001 -> 19001 (Web UI)
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  createbuckets:
+    image: minio/mc:latest
+    container_name: module-project-minio-create-buckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      # 1. 충분히 대기 (MinIO 완전히 시작될 때까지)
+      until curl -f http://minio:9000/minio/health/live; do
+      echo '⏳ MinIO 대기 중...';
+      sleep 2;
+      done;
+      
+      # 2. 연결 설정
+      mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      
+      # 3. 버킷 생성 + 정책 설정
+      mc mb myminio/public --ignore-existing;
+      mc anonymous set download myminio/public;  # 공개 읽기
+      
+      mc mb myminio/private --ignore-existing;
+      # private는 기본적으로 비공개
+      
+      echo '✅ 초기화 완료!';
+      exit 0;
+      "
+    volumes:
+      - ./init:/init
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: module-project-sonarqube
+    ports:
+      - "19090:9000"  # 9090 -> 19090 (Web UI)
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  mysql-data:
+  minio-data:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:

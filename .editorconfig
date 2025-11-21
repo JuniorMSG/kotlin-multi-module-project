@@ -1,0 +1,125 @@
+# EditorConfig는 다양한 에디터와 IDE에서 일관된 코딩 스타일을 유지하도록 도와줍니다.
+# https://editorconfig.org
+
+# 최상위 설정 파일임을 명시
+root = true
+
+# ========================================
+# 모든 파일 공통 설정
+# ========================================
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+# ========================================
+# Kotlin 파일 설정
+# ========================================
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 120
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Import 정렬
+ij_kotlin_name_count_to_use_star_import = 999
+ij_kotlin_name_count_to_use_star_import_for_members = 999
+ij_kotlin_packages_to_use_import_on_demand = unset
+
+# 코드 스타일
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+
+# 들여쓰기
+ij_continuation_indent_size = 4
+ij_kotlin_continuation_indent_size = 4
+
+# 괄호 및 중괄호
+ij_kotlin_line_break_after_multiline_when_entry = true
+ij_kotlin_wrap_expression_body_functions = 1
+ij_kotlin_wrap_first_method_in_call_chain = false
+
+# 공백 설정
+ij_kotlin_space_after_comma = true
+ij_kotlin_space_after_extend_colon = true
+ij_kotlin_space_after_type_colon = true
+ij_kotlin_space_before_comma = false
+ij_kotlin_space_before_extend_colon = true
+ij_kotlin_space_before_type_colon = false
+
+# 빈 줄
+ij_kotlin_blank_lines_after_class_header = 0
+ij_kotlin_blank_lines_around_block_when_branches = 0
+ij_kotlin_blank_lines_before_declaration_with_comment_or_annotation_on_separate_line = 1
+
+# ktlint 호환 설정
+ktlint_standard = enabled
+ktlint_code_style = ktlint_official
+
+# ========================================
+# Java 파일 설정
+# ========================================
+[*.java]
+indent_size = 4
+max_line_length = 999
+
+# ========================================
+# Gradle 파일 설정
+# ========================================
+[*.gradle]
+indent_size = 4
+
+[*.gradle.kts]
+indent_size = 4
+max_line_length = 999
+
+# ========================================
+# YAML 파일 설정
+# ========================================
+[*.{yml,yaml}]
+indent_size = 2
+
+# ========================================
+# JSON 파일 설정
+# ========================================
+[*.json]
+indent_size = 2
+
+# ========================================
+# XML 파일 설정
+# ========================================
+[*.xml]
+indent_size = 2
+
+# ========================================
+# Markdown 파일 설정
+# ========================================
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+
+# ========================================
+# Properties 파일 설정
+# ========================================
+[*.properties]
+indent_size = 4
+
+# ========================================
+# Shell Script 설정
+# ========================================
+[*.sh]
+indent_size = 2
+end_of_line = lf
+
+# ========================================
+# Dockerfile 설정
+# ========================================
+[Dockerfile]
+indent_size = 4
+
+# ========================================
+# Makefile 설정
+# ========================================
+[Makefile]
+indent_style = tab

@@ -117,7 +117,9 @@ fun testListPlus() {
     // 또 한 번 plus() 호출
     list = list + 5
     println("다시 변경 list = $list")
-    println("다시 변경 후 메모리 주소: ${System.identityHashCode(list)} (0x${Integer.toHexString(System.identityHashCode(list))})")
+    println(
+        "다시 변경 후 메모리 주소: ${System.identityHashCode(list)} (0x${Integer.toHexString(System.identityHashCode(list))})",
+    )
     println()
 	
     println("✅ 결론: List도 매번 새로운 객체 생성!")

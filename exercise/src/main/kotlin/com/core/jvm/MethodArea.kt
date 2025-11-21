@@ -18,7 +18,7 @@ object MethodArea {
     ) {
         println("📦 [Method Area] 클래스 로딩: $className")
         classMetadata[className] = classInfo
-		
+
         // companion object가 있으면 즉시 초기화
         classInfo.companionObject?.let {
             println("   ✅ Companion object 초기화: ${it.name}")
@@ -89,13 +89,13 @@ data class ClassInfo(
 
 data class MethodInfo(
     val methodName: String,
-    val needsThisReference: Boolean, // 핵심! this가 필요한가?
+    val needsThisReference: Boolean,
     val implementation: (ObjectInstance?) -> String,
 )
 
 data class CompanionObjectInfo(
     val name: String,
-    val instance: ObjectInstance, // 싱글톤 인스턴스
+    val instance: ObjectInstance,
     val methods: Map<String, MethodInfo>,
 )
 
@@ -109,7 +109,7 @@ data class ObjectInstance(
 
 data class StackFrame(
     val methodName: String,
-    val thisReference: ObjectInstance?, // 핵심! this 참조
+    val thisReference: ObjectInstance?,
     val localVariables: MutableMap<String, Any>,
 )
 
@@ -144,28 +144,28 @@ object JVMSimulator {
         println("\n" + "=".repeat(60))
         println("🚀 JVM 시작 - 클래스 로딩 단계")
         println("=".repeat(60) + "\n")
-		
+
         // 1. HelloCore 클래스를 Method Area에 로드
         loadHelloCoreClass()
-		
+
         println("\n" + "=".repeat(60))
         println("💡 시나리오 1: 인스턴스 메서드 호출 (객체 없이)")
         println("=".repeat(60) + "\n")
-		
+
         // 2. 인스턴스 메서드를 객체 없이 호출 시도
         tryCallInstanceMethodWithoutObject()
-		
+
         println("\n" + "=".repeat(60))
         println("💡 시나리오 2: 인스턴스 메서드 호출 (객체 생성 후)")
         println("=".repeat(60) + "\n")
-		
+
         // 3. 객체 생성 후 인스턴스 메서드 호출
         callInstanceMethodWithObject()
-		
+
         println("\n" + "=".repeat(60))
         println("💡 시나리오 3: Companion 메서드 호출")
         println("=".repeat(60) + "\n")
-		
+
         // 4. Companion object 메서드 호출
         callCompanionMethod()
     }
@@ -177,28 +177,28 @@ object JVMSimulator {
                 "HelloCore\$Companion",
                 mapOf("staticMessage" to "Hello, Static!"),
             )
-		
+
         // Companion object 메서드 정의
         val companionMethods =
             mapOf(
                 "staticHello" to
                     MethodInfo(
                         methodName = "staticHello",
-                        needsThisReference = true, // Companion 인스턴스 필요
+                        needsThisReference = true,
                         implementation = { thisRef ->
                             val msg = thisRef?.variables?.get("staticMessage") as? String
                             "   🎤 출력: $msg"
                         },
                     ),
             )
-		
+
         // 인스턴스 메서드 정의
         val instanceMethods =
             mapOf(
                 "instanceHello" to
                     MethodInfo(
                         methodName = "instanceHello",
-                        needsThisReference = true, // 인스턴스 필요!
+                        needsThisReference = true,
                         implementation = { thisRef ->
                             if (thisRef == null) {
                                 throw NullPointerException("❌ this 참조가 null입니다!")
@@ -208,7 +208,7 @@ object JVMSimulator {
                         },
                     ),
             )
-		
+
         // 클래스 정보 생성
         val classInfo =
             ClassInfo(
@@ -221,22 +221,22 @@ object JVMSimulator {
                         methods = companionMethods,
                     ),
             )
-		
+
         // Method Area에 로드
         MethodArea.loadClass("HelloCore", classInfo)
     }
 
     private fun tryCallInstanceMethodWithoutObject() {
         println("🔍 코드: HelloCore.instanceHello()  // 객체 없이 호출 시도\n")
-		
+
         val classInfo = MethodArea.getClass("HelloCore")!!
         val method = classInfo.instanceMethods["instanceHello"]!!
-		
+
         println("⚙️  JVM 내부 동작 1 :")
         println("   1. Method Area에서 'HelloCore' 클래스 찾기 ✅ 1 ")
         println("   2. 'instanceHello' 메서드 찾기 ✅")
         println("   3. 메서드가 this 참조 필요? ${method.needsThisReference}")
-		
+
         if (method.needsThisReference) {
             println("   4. this 참조 찾기... ❌")
             println("\n❌ 컴파일 에러: Unresolved reference: instanceHello")
@@ -248,60 +248,60 @@ object JVMSimulator {
         println("🔍 코드:")
         println("   val core = HelloCore()  // 객체 생성")
         println("   core.instanceHello()    // 메서드 호출\n")
-		
+
         // 1. 객체 생성 (힙에 할당)
         val coreInstance =
             Heap.allocate(
                 "HelloCore",
                 mapOf("message" to "Hello, Core!"),
             )
-		
+
         println()
-		
+
         // 2. 메서드 호출
         val classInfo = MethodArea.getClass("HelloCore")!!
         val method = classInfo.instanceMethods["instanceHello"]!!
-		
+
         println("⚙️  JVM 내부 동작 2:")
         println("   1. Method Area에서 'HelloCore' 클래스 찾기 ✅ 2 ")
         println("   2. 'instanceHello' 메서드 찾기 ✅")
         println("   3. 메서드가 this 참조 필요? ${method.needsThisReference}")
         println("   4. this 참조 = 객체@${coreInstance.objectId} ✅")
-		
+
         // 3. 스택 프레임 생성 (this 참조 포함!)
         Stack.push("HelloCore.instanceHello", coreInstance)
-		
+
         // 4. 메서드 실행
         val result = method.implementation(coreInstance)
         println(result)
-		
+
         Stack.pop()
-		
+
         println("\n✅ 성공! this.message에 접근할 수 있었습니다.")
     }
 
     private fun callCompanionMethod() {
         println("🔍 코드: HelloCore.staticHello()  // Companion 메서드 호출\n")
-		
+
         val classInfo = MethodArea.getClass("HelloCore")!!
         val companion = classInfo.companionObject!!
         val method = companion.methods["staticHello"]!!
-		
+
         println("⚙️  JVM 내부 동작 3:")
         println("   1. Method Area에서 'HelloCore' 클래스 찾기 ✅ 3")
         println("   2. Companion object 찾기 ✅")
         println("   3. Companion 싱글톤 인스턴스 = 객체@${companion.instance.objectId} ✅")
         println("   4. 'staticHello' 메서드 찾기 ✅")
-		
+
         // 스택 프레임 생성 (this = Companion 인스턴스)
         Stack.push("HelloCore\$Companion.staticHello", companion.instance)
-		
+
         // 메서드 실행
         val result = method.implementation(companion.instance)
         println(result)
-		
+
         Stack.pop()
-		
+
         println("\n✅ 성공! Companion 인스턴스는 클래스 로딩 시 이미 생성되어 있습니다.")
     }
 }
@@ -312,13 +312,13 @@ object JVMSimulator {
 
 fun main() {
     JVMSimulator.start()
-	
+
     println("\n" + "=".repeat(60))
     println("📊 핵심 정리")
     println("=".repeat(60))
     println(
         """
-        
+
         ┌─────────────────────────────────────────────────────────┐
         │  왜 인스턴스 메서드는 객체 없이 호출할 수 없는가?        │
         ├─────────────────────────────────────────────────────────┤
@@ -347,7 +347,7 @@ fun main() {
         │     → 실제로는 HelloCore.Companion.INSTANCE.staticHello()│
         │                                                          │
         └─────────────────────────────────────────────────────────┘
-        
+
         """.trimIndent(),
     )
 }

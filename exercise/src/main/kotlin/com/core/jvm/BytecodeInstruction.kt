@@ -46,10 +46,10 @@ class BytecodeExecutor {
 
     fun execute(instructions: List<BytecodeInstruction>) {
         println("\n🔧 바이트코드 실행:\n")
-		
+
         instructions.forEachIndexed { index, instruction ->
             println("   ${index + 1}. ${instruction.javaClass.simpleName} ${getInstructionDetails(instruction)}")
-			
+
             when (instruction) {
                 is BytecodeInstruction.NEW -> {
                     val obj = "Instance of ${instruction.className}"
@@ -114,50 +114,50 @@ fun main() {
     println("\nKotlin 코드:")
     println("   val core = HelloCore()")
     println("   core.instanceHello()")
-	
+
     val instanceMethodBytecode =
         listOf(
-            BytecodeInstruction.NEW("HelloCore"), // 객체 생성
-            BytecodeInstruction.INVOKESPECIAL("<init>"), // 생성자 호출
-            BytecodeInstruction.ASTORE(1), // 지역변수[1]에 저장
-            BytecodeInstruction.ALOAD(1), // 지역변수[1] 로드 (this!)
-            BytecodeInstruction.INVOKEVIRTUAL("instanceHello"), // 메서드 호출
+            BytecodeInstruction.NEW("HelloCore"),
+            BytecodeInstruction.INVOKESPECIAL("<init>"),
+            BytecodeInstruction.ASTORE(1),
+            BytecodeInstruction.ALOAD(1),
+            BytecodeInstruction.INVOKEVIRTUAL("instanceHello"),
             BytecodeInstruction.RETURN,
         )
-	
+
     BytecodeExecutor().execute(instanceMethodBytecode)
-	
+
     println("\n" + "=".repeat(60))
     println("📝 시나리오 2: Companion 메서드 호출")
     println("=".repeat(60))
     println("\nKotlin 코드:")
     println("   HelloCore.staticHello()")
-	
+
     val companionMethodBytecode =
         listOf(
-            BytecodeInstruction.GETSTATIC("HelloCore.Companion"), // Companion 싱글톤 가져오기
-            BytecodeInstruction.INVOKEVIRTUAL("staticHello"), // 메서드 호출
+            BytecodeInstruction.GETSTATIC("HelloCore.Companion"),
+            BytecodeInstruction.INVOKEVIRTUAL("staticHello"),
             BytecodeInstruction.RETURN,
         )
-	
+
     BytecodeExecutor().execute(companionMethodBytecode)
-	
+
     println("\n" + "=".repeat(60))
     println("🎯 핵심 차이점")
     println("=".repeat(60))
     println(
         """
-        
+
         인스턴스 메서드:
         ├─ NEW 명령어로 객체 생성 필요
         ├─ ALOAD로 객체 참조를 스택에 로드
         └─ INVOKEVIRTUAL 호출 시 this = 로드한 객체
-        
+
         Companion 메서드:
         ├─ NEW 불필요 (이미 존재)
         ├─ GETSTATIC으로 Companion.INSTANCE 가져오기
         └─ INVOKEVIRTUAL 호출 시 this = Companion.INSTANCE
-        
+
         """.trimIndent(),
     )
 }
