@@ -1,0 +1,11 @@
+# Redis Cache (로컬 Docker)
+spring.config.activate.on-profile: local
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 16379
+      password: admin123
+      timeout: 3000ms
+
+
