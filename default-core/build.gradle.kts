@@ -4,12 +4,12 @@ plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.spring") version "2.0.21"
     kotlin("plugin.jpa") version "2.0.21"
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+repositories {
+    mavenCentral()
 }
 
 val mysqlConnectorJavaVersion = "8.0.33"
@@ -30,6 +30,13 @@ dependencies {
     // JWT 의존성 추가
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
 
+    // Spring Cache 추상화 (필수)
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.github.ben-manes.caffeine:caffeine")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.apache.commons:commons-pool2")
+    implementation("io.lettuce:lettuce-core")
+
     // mysql
     runtimeOnly("mysql:mysql-connector-java:$mysqlConnectorJavaVersion")
 
@@ -40,20 +47,9 @@ dependencies {
     detektPlugins("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.21")
 }
 
-dependencies {
-    // Spring Boot Starter
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-
-    // Redis Cache
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
-    // Caffeine Cache (Local In-Memory)
-    implementation("com.github.ben-manes.caffeine:caffeine")
-
-    // Optional: Redis 연결 풀 최적화
-    implementation("org.apache.commons:commons-pool2")
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    enabled = false
 }
-
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-parameters")
 }

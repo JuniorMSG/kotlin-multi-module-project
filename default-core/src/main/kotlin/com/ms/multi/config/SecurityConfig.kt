@@ -18,6 +18,7 @@ class SecurityConfig {
                     .requestMatchers(
                         "/api/cache/**",
                         "/api/debug/**",
+                        "/api/batch/**",
                         "/actuator/health",
                         "/error",
                     ).permitAll()

@@ -36,7 +36,7 @@ class CacheController(
     @GetMapping("/test/{id}")
     fun testCache(
         @PathVariable
-        id: String,
+        id: Long,
     ): Map<String, Any> {
         val times = mutableListOf<Long>()
 
