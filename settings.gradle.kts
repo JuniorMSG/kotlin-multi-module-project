@@ -1,3 +1,4 @@
 rootProject.name = "kotlin-multi-module-project"
 
-include("core", "consumer", "producer", "exercise")
+include("default-core", "default-api", "default-consumer", "default-producer")
+include("exercise")

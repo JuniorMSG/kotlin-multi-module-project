@@ -4,12 +4,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class ConsumerApplication
+class DefaultApiApplication
 
 fun main(args: Array<String>) {
     val core = HelloCore()
     core.hello()
     HelloCore.hello()
 
-    runApplication<ConsumerApplication>(*args)
+    runApplication<DefaultApiApplication>(*args)
 }

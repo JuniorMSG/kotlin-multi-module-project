@@ -1,0 +1,10 @@
+### 주문 생성
+POST http://localhost:18081/api/orders
+Content-Type: application/json
+
+{
+  "orderId": "ORDER-001",
+  "productName": "맥북 프로",
+  "quantity": 2,
+  "price": 2500000
+}
