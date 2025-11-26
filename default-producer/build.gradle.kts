@@ -25,7 +25,7 @@ dependencies {
 
     // 2. Redis Cache
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("io.lettuce:lettuce-core")  // Redis 클라이언트
+    implementation("io.lettuce:lettuce-core") // Redis 클라이언트
 
     // 3. Caffeine Cache (로컬 고성능 캐시)
     implementation("com.github.ben-manes.caffeine:caffeine")
@@ -33,13 +33,6 @@ dependencies {
     // 테스트
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
-
-
-
-
-
-
-
 }
 
 tasks.withType<Test> {

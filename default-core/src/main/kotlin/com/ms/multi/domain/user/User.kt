@@ -12,6 +12,7 @@ import jakarta.persistence.Index
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
+@Suppress("LongParameterList")
 @Entity
 @Table(
     name = "users",
@@ -73,12 +74,3 @@ class User(
     @Column(name = "is_locked", nullable = false)
     val isLocked: Boolean = false,
 ) : BaseEntity()
-
-/**
- * 사용자 역할
- */
-enum class UserRole {
-    ADMIN,
-    USER,
-    GUEST,
-}

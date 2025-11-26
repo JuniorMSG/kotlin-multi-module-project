@@ -18,6 +18,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.util.backoff.FixedBackOff
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
 
+@Suppress("MagicNumber")
 @Configuration
 @EnableKafka
 class KafkaConfig(
@@ -25,20 +26,19 @@ class KafkaConfig(
     private val validator: LocalValidatorFactoryBean,
     private val objectMapper: ObjectMapper,
 ) : KafkaListenerConfigurer {
-
     companion object {
         private const val TRUSTED_PACKAGES = "com.ms.multi.*"
     }
 
     @Bean
     fun kafkaListenerContainerFactory(
-        consumerFactory: ConsumerFactory<String, OrderMessage>
+        consumerFactory: ConsumerFactory<String, OrderMessage>,
     ): ConcurrentKafkaListenerContainerFactory<String, OrderMessage> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, OrderMessage>()
         factory.consumerFactory = consumerFactory
 
         // 🔥 재시도 설정 - 이게 핵심!
-        val backOff = FixedBackOff(2000L, 3L)  // 2초마다, 3번 재시도
+        val backOff = FixedBackOff(2000L, 3L) // 2초마다, 3번 재시도
         val errorHandler = DefaultErrorHandler(backOff)
 
         factory.setCommonErrorHandler(errorHandler)
@@ -49,15 +49,16 @@ class KafkaConfig(
     // 🔥 핵심 1: ConsumerFactory 생성
     @Bean
     fun orderConsumerFactory(): ConsumerFactory<String, OrderMessage> {
-        val deserializer = JsonDeserializer(OrderMessage::class.java, objectMapper).apply {
-            addTrustedPackages(TRUSTED_PACKAGES)
-            setUseTypeHeaders(false)
-        }
+        val deserializer =
+            JsonDeserializer(OrderMessage::class.java, objectMapper).apply {
+                addTrustedPackages(TRUSTED_PACKAGES)
+                setUseTypeHeaders(false)
+            }
 
         return DefaultKafkaConsumerFactory(
             kafkaProperties.buildConsumerProperties(),
             StringDeserializer(),
-            ErrorHandlingDeserializer(deserializer)
+            ErrorHandlingDeserializer(deserializer),
         )
     }
 

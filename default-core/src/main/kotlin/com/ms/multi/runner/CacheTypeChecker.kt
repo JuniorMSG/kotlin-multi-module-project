@@ -4,17 +4,19 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
+import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.cache.RedisCacheManager
 import org.springframework.stereotype.Component
 
+@Suppress("MagicNumber")
 @Configuration
 @EnableCaching
 @Component
 class CacheTypeChecker(
-    private val cacheManager: CacheManager
+    private val cacheManager: CacheManager,
 ) : CommandLineRunner {
-
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(vararg args: String?) {
@@ -23,9 +25,9 @@ class CacheTypeChecker(
 
     private fun printCacheInfo() {
         logger.info("")
-        logger.info("=" .repeat(70))
+        logger.info("=".repeat(70))
         logger.info("🔍 CACHE TYPE DETECTION")
-        logger.info("=" .repeat(70))
+        logger.info("=".repeat(70))
 
         // CacheManager 타입 확인
         logger.info("📦 CacheManager Type: ${cacheManager.javaClass.name}")
@@ -39,7 +41,7 @@ class CacheTypeChecker(
         }
 
         logger.info("")
-        logger.info("=" .repeat(70))
+        logger.info("=".repeat(70))
 
         // 어떤 캐시가 선택되었는지 출력
         when (cacheManager) {
@@ -69,7 +71,7 @@ class CacheTypeChecker(
             }
         }
 
-        logger.info("=" .repeat(70))
+        logger.info("=".repeat(70))
         logger.info("")
     }
 }

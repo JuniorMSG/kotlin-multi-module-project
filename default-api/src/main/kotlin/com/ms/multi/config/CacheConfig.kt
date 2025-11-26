@@ -41,20 +41,21 @@ class CacheConfig {
                     cacheProperties.defaultExpireAfterWrite,
                     cacheProperties.defaultTimeUnit,
                 )
-                .maximumSize(cacheProperties.defaultMaximumSize)
+                .maximumSize(cacheProperties.defaultMaximumSize),
         )
 
         cacheManager.isAllowNullValues = true
 
         cacheProperties.caches.forEach { cacheConfig ->
-            val cache = Caffeine
-                .newBuilder()
-                .expireAfterWrite(
-                    cacheConfig.expireAfterWrite ?: cacheProperties.defaultExpireAfterWrite,
-                    cacheConfig.timeUnit ?: cacheProperties.defaultTimeUnit
-                )
-                .maximumSize(cacheConfig.maximumSize ?: cacheProperties.defaultMaximumSize)
-                .build<Any, Any>()
+            val cache =
+                Caffeine
+                    .newBuilder()
+                    .expireAfterWrite(
+                        cacheConfig.expireAfterWrite ?: cacheProperties.defaultExpireAfterWrite,
+                        cacheConfig.timeUnit ?: cacheProperties.defaultTimeUnit,
+                    )
+                    .maximumSize(cacheConfig.maximumSize ?: cacheProperties.defaultMaximumSize)
+                    .build<Any, Any>()
 
             cacheManager.registerCustomCache(cacheConfig.name, cache)
         }

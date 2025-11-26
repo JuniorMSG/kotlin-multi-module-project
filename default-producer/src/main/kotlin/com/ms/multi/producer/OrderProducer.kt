@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class OrderProducer(
-    private val kafkaTemplate: KafkaTemplate<String, OrderRequest>
+    private val kafkaTemplate: KafkaTemplate<String, OrderRequest>,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 

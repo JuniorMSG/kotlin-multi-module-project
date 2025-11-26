@@ -13,10 +13,13 @@ import kotlin.system.measureTimeMillis
 @RequestMapping("/api/cache")
 class CacheController(
     private val productService: CacheService,
-    private val cacheManager: CacheManager
+    private val cacheManager: CacheManager,
 ) {
-
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    companion object {
+        const val REPEAT_COUNT = 3
+    }
 
     @GetMapping("/info")
     fun getCacheInfo(): Map<String, Any> {
@@ -26,30 +29,34 @@ class CacheController(
             "cacheManagerType" to cacheManager.javaClass.simpleName,
             "cacheType" to (cache?.javaClass?.simpleName ?: "null"),
             "nativeCacheType" to (cache?.nativeCache?.javaClass?.simpleName ?: "null"),
-            "cacheNames" to cacheManager.cacheNames
+            "cacheNames" to cacheManager.cacheNames,
         )
     }
 
     @GetMapping("/test/{id}")
-    fun testCache(@PathVariable
-    id: String): Map<String, Any> {
+    fun testCache(
+        @PathVariable
+        id: String,
+    ): Map<String, Any> {
         val times = mutableListOf<Long>()
 
-        repeat(3) { i ->
-            val time = measureTimeMillis {
-                productService.getProduct(id)
-            }
+        repeat(REPEAT_COUNT) { i ->
+            val time =
+                measureTimeMillis {
+                    productService.getProduct(id)
+                }
             times.add(time)
             logger.info("⏱️  Try ${i + 1}: ${time}ms")
         }
 
         return mapOf(
             "cacheType" to cacheManager.javaClass.simpleName,
-            "times" to mapOf(
-                "1st" to "${times[0]}ms (DB)",
-                "2nd" to "${times[1]}ms (Cache)",
-                "3rd" to "${times[2]}ms (Cache)"
-            )
+            "times" to
+                mapOf(
+                    "1st" to "${times[0]}ms (DB)",
+                    "2nd" to "${times[1]}ms (Cache)",
+                    "3rd" to "${times[2]}ms (Cache)",
+                ),
         )
     }
 
