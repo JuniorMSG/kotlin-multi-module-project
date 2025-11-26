@@ -27,6 +27,13 @@ spring:
        encoding: UTF-8
        data-locations:
         - classpath:data/user/user.sql
+  data:
+    redis:
+      host: localhost
+      port: 16379
+      password: admin123
+      timeout: 3000ms
+
 
 logging:
   level:

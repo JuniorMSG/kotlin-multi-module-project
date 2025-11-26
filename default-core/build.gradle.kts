@@ -33,7 +33,6 @@ dependencies {
     // mysql
     runtimeOnly("mysql:mysql-connector-java:$mysqlConnectorJavaVersion")
 
-
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
 
