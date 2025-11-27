@@ -7,13 +7,9 @@ spring:
     username: admin
     password: admin
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   batch:
     jdbc:
-      initialize-schema: always  # 배치 메타데이터 테이블 자동 생성
-    job:
-      enabled: false  # 자동 실행 방지 (수동으로 실행)
-
+      initialize-schema: always
   jpa:
     hibernate:
         ddl-auto: create

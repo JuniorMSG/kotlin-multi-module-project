@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.implementation
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.0.21"
@@ -52,4 +53,14 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 }
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-parameters")
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf(
+            "-Xjsr305=strict",
+            "-java-parameters"  // 이 옵션 추가!
+        )
+        jvmTarget = "21"
+    }
 }
