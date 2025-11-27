@@ -12,14 +12,13 @@ import org.springframework.transaction.PlatformTransactionManager
 
 @Configuration
 class SimpleJobConfig {
-
     /**
      * Job 정의
      */
     @Bean
     fun simpleJob(
         jobRepository: JobRepository,
-        simpleStep: Step
+        simpleStep: Step,
     ): Job {
         return JobBuilder("simpleJob", jobRepository)
             .start(simpleStep)
@@ -44,5 +43,5 @@ class SimpleJobConfig {
                     RepeatStatus.FINISHED
                 },
                 transactionManager,
-        ).build()
+            ).build()
 }

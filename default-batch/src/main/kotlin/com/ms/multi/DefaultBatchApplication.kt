@@ -17,4 +17,3 @@ fun main(args: Array<String>) {
     val exit = SpringApplication.exit(context)
     exitProcess(exit)
 }
-

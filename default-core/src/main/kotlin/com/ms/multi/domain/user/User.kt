@@ -17,24 +17,15 @@ class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
-
     @Column(nullable = false)
     var email: String,
-
     @Column(nullable = false)
     var name: String,
-
     @Column(nullable = false)
     var purchaseAmount: Long = 0,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var grade: UserGrade = UserGrade.BRONZE,
-
     @Column(nullable = false)
     var markedForUpdate: Boolean = false,
-
-
-): BaseEntity()
-
-
+) : BaseEntity()

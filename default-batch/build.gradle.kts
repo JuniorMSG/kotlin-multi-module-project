@@ -13,7 +13,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     runtimeOnly("com.mysql:mysql-connector-j")
-    runtimeOnly("mysql:mysql-connector-java:${mysqlConnectorJavaVersion}")
+    runtimeOnly("mysql:mysql-connector-java:$mysqlConnectorJavaVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.batch:spring-batch-test")

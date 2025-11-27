@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
     havingValue = "sampleUpdateJob",
 )
 class SampleListener : StepExecutionListener {
-
     override fun beforeStep(stepExecution: StepExecution) {
         println("🚀 Step 시작: ${stepExecution.stepName}")
     }

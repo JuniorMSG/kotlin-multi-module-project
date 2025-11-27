@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component
     havingValue = "sampleUpdateJob",
 )
 class SampleWriter : ItemWriter<SampleData> {
-
     override fun write(chunk: Chunk<out SampleData>) {
         println("✍️ Writing ${chunk.size()} items:")
 
