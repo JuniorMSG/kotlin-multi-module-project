@@ -1,16 +1,17 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.spring") version "2.0.21"
+    kotlin("jvm")
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
-detekt {
-    source.setFrom(files())
-}
-
-// 또는 태스크 비활성화
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt> {
+// 🎯 detekt 태스크 완전 비활성화
+tasks.matching { it.name.startsWith("detekt") }.configureEach {
     enabled = false
 }
