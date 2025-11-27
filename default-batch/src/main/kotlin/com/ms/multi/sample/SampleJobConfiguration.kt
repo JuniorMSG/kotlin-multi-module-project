@@ -24,7 +24,7 @@ class SampleJobConfiguration {
         jobRepository: JobRepository,
         loggingJobExecutionListener: JobExecutionListener,
         @Qualifier(SampleUpdateJobStepConfiguration.STEP_NAME)
-        sampleStep: Step, // 변수명 수정
+        sampleStep: Step,
     ): Job =
         JobBuilder(JOB_NAME, jobRepository)
             .incrementer(ClearRunIdIncrementer())
