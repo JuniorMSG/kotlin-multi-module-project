@@ -12,14 +12,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
 
+@Suppress("MagicNumber")
 @Configuration
 @ConditionalOnProperty(
     prefix = "spring.batch.job",
     name = ["name"],
-    havingValue = "sampleUpdateJob", // Job 이름과 일치
+    havingValue = "sampleUpdateJob",
 )
 class SampleUpdateJobStepConfiguration {
-
     @Bean(STEP_NAME)
     fun sampleStep(
         jobRepository: JobRepository,
@@ -44,5 +44,5 @@ class SampleUpdateJobStepConfiguration {
 data class SampleData(
     val id: Long,
     val name: String,
-    val processed: Boolean = false
+    val processed: Boolean = false,
 )

@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.implementation
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -56,11 +57,13 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xjsr305=strict",
-            "-java-parameters"  // 이 옵션 추가!
+    compilerOptions {
+        freeCompilerArgs.set(
+            listOf(
+                "-Xjsr305=strict",
+                "-java-parameters",
+            ),
         )
-        jvmTarget = "21"
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }

@@ -7,7 +7,6 @@ import java.time.LocalDate
 
 @Component
 class BatchDateJobExecutionListener : JobExecutionListener {
-
     override fun beforeJob(jobExecution: JobExecution) {
         val batchDate = LocalDate.now()
         jobExecution.executionContext.putString("batchDate", batchDate.toString())
