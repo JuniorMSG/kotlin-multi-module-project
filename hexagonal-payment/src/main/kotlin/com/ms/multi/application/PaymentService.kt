@@ -5,19 +5,21 @@ import com.ms.multi.domain.PaymentType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-
 /**
  * 결제 서비스
  */
 @Service
 class PaymentService(
-    private val paymentFactory: PaymentFactory
+    private val paymentFactory: PaymentFactory,
 ) {
     /**
      * 결제 처리
      */
     @Transactional
-    fun processPayment(paymentType: String, amount: Long): PaymentResult {
+    fun processPayment(
+        paymentType: String,
+        amount: Long,
+    ): PaymentResult {
         // 1. 팩토리로 적절한 결제 객체 생성
         val payment = paymentFactory.create(paymentType)
 

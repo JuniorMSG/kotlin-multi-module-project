@@ -10,11 +10,11 @@ data class PaymentResult(
     val amount: Long,
     val status: PaymentStatus,
     val paymentMethod: String,
-    val processedAt: LocalDateTime = LocalDateTime.now()
+    val processedAt: LocalDateTime = LocalDateTime.now(),
 )
 
 enum class PaymentStatus {
     SUCCESS,
     FAILED,
-    PENDING
+    PENDING,
 }

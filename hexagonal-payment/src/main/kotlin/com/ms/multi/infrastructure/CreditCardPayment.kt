@@ -11,7 +11,6 @@ import java.util.UUID
  */
 @Component
 class CreditCardPayment : Payment {
-
     override fun process(amount: Long): PaymentResult {
         // 실제로는 PG사 API 호출
         println("[CreditCard] 결제 처리 중: ${amount}원")
@@ -20,7 +19,7 @@ class CreditCardPayment : Payment {
             transactionId = "CC-${UUID.randomUUID()}",
             amount = amount,
             status = PaymentStatus.SUCCESS,
-            paymentMethod = getPaymentMethodName()
+            paymentMethod = getPaymentMethodName(),
         )
     }
 

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class PaymentFactory(
     private val creditCardPayment: CreditCardPayment,
-    private val kakaoPayPayment: KakaoPayPayment
+    private val kakaoPayPayment: KakaoPayPayment,
 ) {
     /**
      * 결제 타입에 따라 적절한 Payment 객체 생성

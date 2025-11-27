@@ -5,7 +5,8 @@ package com.ms.multi.domain
  */
 enum class PaymentType {
     CREDIT_CARD,
-    KAKAO_PAY;
+    KAKAO_PAY,
+    ;
 
     companion object {
         fun fromString(type: String): PaymentType {

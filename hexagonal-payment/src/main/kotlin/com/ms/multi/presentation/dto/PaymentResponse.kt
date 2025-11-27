@@ -11,5 +11,5 @@ data class PaymentResponse(
     val message: String,
     val paymentMethod: String,
     val amount: Long,
-    val processedAt: LocalDateTime
+    val processedAt: LocalDateTime,
 )

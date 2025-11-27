@@ -13,7 +13,6 @@ import java.util.UUID
  */
 @Component
 class KakaoPayPayment : Payment {
-
     override fun process(amount: Long): PaymentResult {
         // 실제로는 카카오페이 API 호출
         println("[KakaoPay] 결제 처리 중: ${amount}원")
@@ -22,10 +21,9 @@ class KakaoPayPayment : Payment {
             transactionId = "KAKAO-${UUID.randomUUID()}",
             amount = amount,
             status = PaymentStatus.SUCCESS,
-            paymentMethod = getPaymentMethodName()
+            paymentMethod = getPaymentMethodName(),
         )
     }
 
     override fun getPaymentMethodName(): String = "KAKAO_PAY"
 }
-

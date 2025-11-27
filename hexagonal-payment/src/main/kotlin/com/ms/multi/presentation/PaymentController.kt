@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/payments")
 class PaymentController(
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
 ) {
     /**
      * 결제 처리
@@ -27,21 +27,23 @@ class PaymentController(
     fun processPayment(
         @Valid
         @RequestBody
-        request: PaymentRequest
+        request: PaymentRequest,
     ): ResponseEntity<PaymentResponse> {
-        val result = paymentService.processPayment(
-            paymentType = request.paymentType,
-            amount = request.amount
-        )
+        val result =
+            paymentService.processPayment(
+                paymentType = request.paymentType,
+                amount = request.amount,
+            )
 
-        val response = PaymentResponse(
-            transactionId = result.transactionId,
-            success = result.status == PaymentStatus.SUCCESS,
-            message = "${result.paymentMethod}로 ${result.amount}원이 결제되었습니다.",
-            paymentMethod = result.paymentMethod,
-            amount = result.amount,
-            processedAt = result.processedAt
-        )
+        val response =
+            PaymentResponse(
+                transactionId = result.transactionId,
+                success = result.status == PaymentStatus.SUCCESS,
+                message = "${result.paymentMethod}로 ${result.amount}원이 결제되었습니다.",
+                paymentMethod = result.paymentMethod,
+                amount = result.amount,
+                processedAt = result.processedAt,
+            )
 
         return ResponseEntity.ok(response)
     }
