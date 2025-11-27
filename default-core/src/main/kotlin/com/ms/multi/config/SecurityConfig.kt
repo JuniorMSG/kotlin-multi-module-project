@@ -19,6 +19,7 @@ class SecurityConfig {
                         "/api/cache/**",
                         "/api/debug/**",
                         "/api/batch/**",
+                        "/api/payments/**",
                         "/actuator/health",
                         "/error",
                     ).permitAll()
