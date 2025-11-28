@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: hexagonal-payment
+
+  # ✅ profiles.active 설정 제거 또는 기본값 지정
+  profiles:
+    default: local
+
+server:
+  port: 10001
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.ms.multi: DEBUG

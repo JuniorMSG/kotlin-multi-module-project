@@ -16,6 +16,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.apache.commons:commons-pool2")
     implementation("io.lettuce:lettuce-core")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     runtimeOnly("mysql:mysql-connector-java:$mysqlConnectorJavaVersion")
 

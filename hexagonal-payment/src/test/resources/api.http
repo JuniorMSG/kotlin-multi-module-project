@@ -1,0 +1,61 @@
+### GET request to example server
+# curl -X GET http://localhost:10001/api/payments/methods
+GET http://localhost:10001/api/payments/methods
+
+###
+# curl -X POST http://localhost:10001/api/payments
+#  -H "Content-Type: application/json"
+#  -d '{
+#    "paymentType": "CREDIT_CARD",
+#    "amount": 50000
+#  }'
+POST http://localhost:10001/api/payments
+Content-Type: application/json
+
+{
+  "paymentType": "CREDIT_CARD",
+  "amount": 50000
+}
+
+
+### GET
+# 3. 카카오페이 결제
+
+
+###
+# curl -X POST http://localhost:10001/api/payments
+#  -H "Content-Type: application/json"
+#  -d '{
+#    "paymentType": "kakao_pay",
+#    "amount": 30000
+#  }'
+POST http://localhost:10001/api/payments
+Content-Type: application/json
+
+{
+  "paymentType": "KAKAO_PAY",
+  "amount": 30000
+}
+
+###
+
+# curl -X POST http://localhost:10001/api/payments
+#  -H "Content-Type: application/json"
+#  -d '{
+#    "paymentType": "invalid",
+#    "amount": 10000
+#  }'
+POST http://localhost:10001/api/payments
+Content-Type: application/json
+
+{
+  "paymentType": "invalid",
+  "amount": 10000
+}
+
+###
+
+
+
+
+

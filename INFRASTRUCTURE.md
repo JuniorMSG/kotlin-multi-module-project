@@ -1,638 +1,470 @@
-# 🚀 로컬 개발 인프라 환경 가이드
+# 📋 프로젝트 인프라 문서 업데이트
 
-## 📋 목차
+## 🏗️ 전체 아키텍처
 
-- [개요](#개요)
-- [사전 요구사항](#사전-요구사항)
-- [서비스 구성](#서비스-구성)
-- [빠른 시작](#빠른-시작)
-- [서비스별 접속 정보](#서비스별-접속-정보)
-- [상세 설정](#상세-설정)
-- [문제 해결](#문제-해결)
-
----
-
-## 📌 개요
-
-이 Docker Compose 설정은 로컬 개발 환경에서 필요한 모든 인프라 서비스를 제공합니다.
-포트 충돌을 방지하기 위해 모든 포트에 10000을 더한 값을 사용합니다.
-
-### 제공 서비스
-
-- **MySQL 8.0**: 관계형 데이터베이스
-- **Apache Kafka**: 메시지 큐 시스템
-- **MinIO**: S3 호환 오브젝트 스토리지
-- **SonarQube**: 코드 품질 분석 도구
-
----
-
-## 🔧 사전 요구사항
-
-### 필수 설치 항목
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) (v20.10 이상)
-- [Docker Compose](https://docs.docker.com/compose/install/) (v2.0 이상)
-
-### 시스템 요구사항
-
-- **메모리**: 최소 8GB RAM (권장 16GB)
-- **디스크**: 최소 20GB 여유 공간
-- **OS**: Windows 10/11, macOS 10.15+, Linux
-
-### 설치 확인
-
-```bash
-# Docker 버전 확인
-docker --version
-# Docker Compose 버전 확인
-docker compose version
+```
+┌─────────────────────────────────────────────────────────────┐
+│  로컬 개발 환경                                                │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Docker Compose (Host)                               │   │
+│  │                                                       │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │   │
+│  │  │  MySQL   │  │  Redis   │  │  Kafka+Zookeeper │  │   │
+│  │  │  :13306  │  │  :16379  │  │  :19092/:12181   │  │   │
+│  │  └──────────┘  └──────────┘  └──────────────────┘  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                            ▲                                 │
+│                            │ localhost 접근                   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Kubernetes (Rancher Desktop - Lima VM)             │   │
+│  │                                                       │   │
+│  │  ┌─────────────────────────────────────────────┐    │   │
+│  │  │  hexagonal-payment Pod                      │    │   │
+│  │  │  - hostNetwork: true                        │    │   │
+│  │  │  - Port: 10001 (HTTP), 5005 (Debug)        │    │   │
+│  │  └─────────────────────────────────────────────┘    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🏗️ 서비스 구성
+## 📁 업데이트된 프로젝트 구조
 
-| 서비스           | 이미지                             | 호스트 포트       | 컨테이너 포트    | 용도          |
-|---------------|---------------------------------|--------------|------------|-------------|
-| **MySQL**     | mysql:8.0                       | 13306        | 3306       | 메인 데이터베이스   |
-| **Zookeeper** | confluentinc/cp-zookeeper:7.6.0 | 12181        | 2181       | Kafka 코디네이터 |
-| **Kafka**     | confluentinc/cp-kafka:7.6.0     | 19092        | 9092       | 메시지 브로커     |
-| **Kafka UI**  | provectuslabs/kafka-ui:latest   | 18090        | 8080       | Kafka 관리 UI |
-| **MinIO**     | minio/minio:latest              | 19000, 19001 | 9000, 9001 | 오브젝트 스토리지   |
-| **SonarQube** | sonarqube:latest                | 19090        | 9000       | 코드 품질 분석    |
+```
+kotlin-multi-module-project/
+├── .github/
+├── .gradle/
+├── .idea/
+├── .kotlin/
+├── build/
+│
+├── default-api/
+├── default-batch/
+├── default-consumer/
+├── default-core/
+├── default-producer/
+├── exercise/
+│
+├── hexagonal-payment/                    ⭐ 주요 모듈
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── kotlin/
+│   │   │   │   └── com/ms/multi/
+│   │   │   │       ├── adapter/
+│   │   │   │       │   ├── in/web/      ← REST Controllers
+│   │   │   │       │   └── out/         ← JPA Repositories, Redis
+│   │   │   │       ├── application/     ← Use Cases
+│   │   │   │       ├── domain/          ← Entities, Value Objects
+│   │   │   │       └── config/          ← Spring Configuration
+│   │   │   └── resources/
+│   │   │       ├── application.yml       ← 기본 설정
+│   │   │       ├── application-local.yml ← 로컬 개발
+│   │   │       └── application-k8s.yml   ← K8s 환경
+│   │   └── test/
+│   ├── build/
+│   │   └── libs/
+│   │       └── hexagonal-payment-0.0.1-SNAPSHOT.jar
+│   ├── build.gradle.kts
+│   ├── Dockerfile                        ← 멀티스테이지 빌드
+│   └── deploy.sh                         ← 배포 자동화
+│
+├── k8s/                                  ⭐ Kubernetes 매니페스트
+│   └── hexagonal-payment/
+│       ├── namespace.yaml                ← payment 네임스페이스
+│       ├── configmap.yaml                ← 환경 설정
+│       ├── secret.yaml                   ← 민감 정보
+│       ├── deployment.yaml               ← Pod 배포 (hostNetwork: true)
+│       ├── service.yaml                  ← ClusterIP Service
+│       └── deploy.sh                     ← 전체 배포 스크립트
+│
+├── init-scripts/                         ⭐ DB 초기화
+│   └── 01-init-hexagonal-payment.sql     ← MySQL 스키마/데이터
+│
+├── docker-compose.yml                    ⭐ 인프라 서비스
+├── gradle/
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+└── build.gradle.kts
+```
 
 ---
 
-## 🚀 빠른 시작
+## 🐳 Docker Compose 구성
 
-### 1. 전체 서비스 시작
+### 서비스 목록
+
+| 서비스 | 이미지 | 포트 | 용도 |
+|--------|--------|------|------|
+| **mysql** | mysql:8.4 | 13306 | 메인 데이터베이스 |
+| **redis** | redis:7.2-alpine | 16379 | 캐시 & 세션 |
+| **zookeeper** | confluentinc/cp-zookeeper:7.6.0 | 12181 | Kafka 코디네이터 |
+| **kafka** | confluentinc/cp-kafka:7.6.0 | 19092 | 메시지 브로커 |
+
+### MySQL 설정
+
+```yaml
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: module
+    MYSQL_USER: admin
+    MYSQL_PASSWORD: admin
+  volumes:
+    - mysql-data:/var/lib/mysql
+    - ./init-scripts/01-init-hexagonal-payment.sql:/docker-entrypoint-initdb.d/
+```
+
+**초기화 스크립트:**
+- `hexagonal_payment` 데이터베이스 생성
+- `payment_user` 사용자 생성 (password: payment123)
+- 필요한 테이블 자동 생성
+
+### Redis 설정
+
+```yaml
+redis:
+  command: redis-server --requirepass admin123
+  ports:
+    - "16379:6379"
+```
+
+---
+
+## ☸️ Kubernetes 배포 구성
+
+### Namespace
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payment
+```
+
+### ConfigMap (환경 설정)
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hexagonal-payment-config
+  namespace: payment
+data:
+  SPRING_PROFILES_ACTIVE: "k8s"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://localhost:13306/hexagonal_payment?..."
+  SPRING_DATASOURCE_USERNAME: "payment_user"
+  SPRING_DATA_REDIS_HOST: "localhost"
+  SPRING_DATA_REDIS_PORT: "16379"
+  SERVER_PORT: "10001"
+  JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC"
+```
+
+### Secret (민감 정보)
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hexagonal-payment-secret
+  namespace: payment
+type: Opaque
+data:
+  SPRING_DATASOURCE_PASSWORD: cGF5bWVudDEyMw==  # payment123
+  SPRING_DATA_REDIS_PASSWORD: YWRtaW4xMjM=      # admin123
+```
+
+### Deployment (핵심 설정)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hexagonal-payment
+  namespace: payment
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostNetwork: true                    # ⭐ Host 네트워크 사용
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: hexagonal-payment
+          image: hexagonal-payment:1.0.0
+          imagePullPolicy: Never           # 로컬 이미지 사용
+          ports:
+            - containerPort: 10001         # HTTP
+            - containerPort: 5005          # Debug
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 10001
+            initialDelaySeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 10001
+            initialDelaySeconds: 30
+```
+
+**주요 특징:**
+- `hostNetwork: true` → localhost로 Docker 서비스 접근
+- `imagePullPolicy: Never` → 로컬 빌드 이미지 사용
+- Health Check → Spring Actuator 활용
+
+### Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hexagonal-payment
+  namespace: payment
+spec:
+  type: ClusterIP
+  selector:
+    app: hexagonal-payment
+  ports:
+    - name: http
+      port: 10001
+      targetPort: 10001
+    - name: debug
+      port: 5005
+      targetPort: 5005
+```
+
+---
+
+## 🚀 배포 프로세스
+
+### 1. 인프라 시작
 
 ```bash
-# 백그라운드에서 모든 서비스 실행
-docker compose up -d
+# Docker Compose 서비스 시작
+docker-compose up -d
+
+# 상태 확인
+docker-compose ps
+docker-compose logs -f mysql redis
+```
+
+### 2. 애플리케이션 빌드
+
+```bash
+cd hexagonal-payment
+
+# Gradle 빌드
+./gradlew clean bootJar
+
+# Docker 이미지 빌드
+docker build -t hexagonal-payment:1.0.0 .
+
+# 이미지 확인
+docker images | grep hexagonal-payment
+```
+
+### 3. Kubernetes 배포
+
+```bash
+cd ../k8s/hexagonal-payment
+
+# 전체 배포 (자동화 스크립트)
+./deploy.sh
+
+# 또는 수동 배포
+kubectl apply -f namespace.yaml
+kubectl apply -f secret.yaml
+kubectl apply -f configmap.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
+
+### 4. 배포 확인
+
+```bash
+# Pod 상태
+kubectl get pods -n payment -w
 
 # 로그 확인
-docker compose logs -f
-```
+kubectl logs -f -n payment -l app=hexagonal-payment
 
-### 2. 특정 서비스만 시작
+# 서비스 확인
+kubectl get svc -n payment
 
-```bash
-# MySQL만 시작
-docker compose up -d mysql
-
-# Kafka 스택만 시작 (Zookeeper + Kafka + Kafka UI)
-docker compose up -d zookeeper kafka kafka-ui
-
-# MinIO만 시작
-docker compose up -d minio createbuckets
-```
-
-### 3. 서비스 상태 확인
-
-```bash
-# 실행 중인 컨테이너 확인
-docker compose ps
-
-# 서비스 헬스체크 확인
-docker compose ps --format json | jq '.[] | {name: .Name, health: .Health}'
-```
-
-### 4. 서비스 중지 및 제거
-
-```bash
-# 서비스 중지
-docker compose stop
-
-# 서비스 중지 및 컨테이너 제거
-docker compose down
-
-# 볼륨까지 모두 제거 (데이터 삭제)
-docker compose down -v
+# Health Check
+curl http://localhost:10001/actuator/health
 ```
 
 ---
 
-## 🔐 서비스별 접속 정보
+## 🔧 환경별 설정
 
-### MySQL
-
-```yaml
-호스트: localhost
-포트: 13306
-데이터베이스: module
-사용자: admin
-비밀번호: admin
-Root 비밀번호: root
-```
-
-**연결 예시**
-
-```bash
-# MySQL CLI
-mysql -h 127.0.0.1 -P 13306 -u admin -p
-
-# JDBC URL
-jdbc:mysql://localhost:13306/module?useSSL=false&serverTimezone=Asia/Seoul
-```
-
-**IntelliJ Database 설정**
-
-```
-Host: localhost
-Port: 13306
-Database: module
-User: admin
-Password: admin
-Driver: MySQL
-```
-
----
-
-### Kafka
-
-**Broker 접속 정보**
+### Local (IDE 실행)
 
 ```yaml
-외부 접속: localhost:19092
-내부 접속: kafka:9093
-Zookeeper: localhost:12181
-```
-
-**Kafka UI 접속**
-
-- URL: http://localhost:18090
-- 클러스터명: module-local
-
-**토픽 생성 예시**
-
-```bash
-# Kafka 컨테이너 접속
-docker exec -it local-kafka bash
-
-# 토픽 생성
-kafka-topics --create \
-  --bootstrap-server localhost:9092 \
-  --topic test-topic \
-  --partitions 3 \
-  --replication-factor 1
-
-# 토픽 목록 확인
-kafka-topics --list --bootstrap-server localhost:9092
-```
-
-**애플리케이션 설정 (Spring Boot)**
-
-```yaml
+# application-local.yml
 spring:
-  kafka:
-    bootstrap-servers: localhost:19092
-    consumer:
-      group-id: my-group
-      auto-offset-reset: earliest
-    producer:
-      acks: all
+  datasource:
+    url: jdbc:mysql://localhost:13306/hexagonal_payment
+  data:
+    redis:
+      host: localhost
+      port: 16379
 ```
 
----
-
-### MinIO (S3 호환 스토리지)
-
-**접속 정보**
+### K8s (컨테이너 실행)
 
 ```yaml
-Console URL: http://localhost:19001
-API Endpoint: http://localhost:19000
-Access Key: admin
-Secret Key: admin123
-기본 버킷: public
+# application-k8s.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:13306/hexagonal_payment  # hostNetwork로 접근
+  data:
+    redis:
+      host: localhost
+      port: 16379
 ```
 
-**MinIO Console 접속**
+**동일한 localhost 사용 가능 (hostNetwork 덕분)**
 
-1. 브라우저에서 http://localhost:19001 접속
-2. Username: `admin`
-3. Password: `admin123`
+---
 
-**AWS CLI 설정**
+## 🐛 디버깅
+
+### IntelliJ Remote Debug 설정
+
+1. **Run → Edit Configurations**
+2. **Add New Configuration → Remote JVM Debug**
+3. **설정:**
+   ```
+   Host: localhost
+   Port: 5005
+   ```
+4. **Debug 모드로 실행**
+
+### Pod 내부 접근
 
 ```bash
-# AWS CLI 설치 (Mac)
-brew install awscli
+# Shell 접속
+kubectl exec -it -n payment <pod-name> -- /bin/sh
 
-# MinIO 프로파일 설정
-aws configure --profile minio
-# AWS Access Key ID: admin
-# AWS Secret Access Key: admin123
-# Default region name: us-east-1
-# Default output format: json
+# 환경 변수 확인
+kubectl exec -n payment <pod-name> -- env | grep SPRING
 
-# 버킷 목록 확인
-aws --profile minio --endpoint-url http://localhost:19000 s3 ls
-
-# 파일 업로드
-aws --profile minio --endpoint-url http://localhost:19000 \
-  s3 cp test.txt s3://public/
-```
-
-**Spring Boot 설정**
-
-```yaml
-cloud:
-  aws:
-    s3:
-      endpoint: http://localhost:19000
-    credentials:
-      access-key: admin
-      secret-key: admin123
-    region:
-      static: us-east-1
+# 로그 실시간 확인
+kubectl logs -f -n payment <pod-name>
 ```
 
 ---
 
-### SonarQube
+## 📊 리소스 사용량
 
-**접속 정보**
+### 권장 사양
 
-```yaml
-URL: http://localhost:19090
-초기 계정:
-  - Username: admin
-  - Password: admin
+| 항목 | 최소 | 권장 |
+|------|------|------|
+| **CPU** | 2 Core | 4 Core |
+| **Memory** | 4 GB | 8 GB |
+| **Disk** | 20 GB | 50 GB |
+
+### Rancher Desktop 설정
+
 ```
-
-**초기 설정**
-
-1. http://localhost:19090 접속
-2. 초기 비밀번호로 로그인 (admin/admin)
-3. 새 비밀번호 설정 요청 시 변경
-4. 프로젝트 생성 및 토큰 발급
-
-**Gradle 프로젝트 연동**
-
-```gradle
-// build.gradle.kts
-plugins {
-    id("org.sonarqube") version "4.4.1.3373"
-}
-
-sonar {
-    properties {
-        property("sonar.projectKey", "my-project")
-        property("sonar.host.url", "http://localhost:19090")
-        property("sonar.login", "your-token-here")
-    }
-}
-```
-
-**분석 실행**
-
-```bash
-./gradlew sonar \
-  -Dsonar.projectKey=my-project \
-  -Dsonar.host.url=http://localhost:19090 \
-  -Dsonar.login=your-token-here
+Memory: 6 GB
+CPUs: 4
+Disk: 40 GB
 ```
 
 ---
 
-## ⚙️ 상세 설정
+## 🔐 보안 고려사항
 
-### 볼륨 관리
-
-**생성된 볼륨 목록**
+### Secret 관리
 
 ```bash
-# 볼륨 확인
-docker volume ls | grep docker
+# Base64 인코딩
+echo -n "payment123" | base64
 
-# 볼륨 상세 정보
-docker volume inspect docker_mysql-data
+# Secret 생성
+kubectl create secret generic hexagonal-payment-secret \
+  --from-literal=SPRING_DATASOURCE_PASSWORD=payment123 \
+  --from-literal=SPRING_DATA_REDIS_PASSWORD=admin123 \
+  -n payment
 ```
 
-**데이터 백업**
+### 프로덕션 권장사항
+
+- ❌ hostNetwork 사용 금지
+- ✅ Managed Database 사용 (RDS, ElastiCache)
+- ✅ Secret Manager 사용 (AWS Secrets Manager, Vault)
+- ✅ Network Policy 적용
+- ✅ RBAC 설정
+
+---
+
+## 📝 주요 명령어 모음
 
 ```bash
-# MySQL 데이터 백업
-docker exec local-mysql mysqldump -u admin -padmin module > backup.sql
+# === Docker ===
+docker-compose up -d                    # 인프라 시작
+docker-compose down -v                  # 인프라 정지 + 볼륨 삭제
+docker-compose logs -f mysql            # MySQL 로그
 
-# MinIO 데이터 백업
-docker run --rm -v docker_minio-data:/data -v $(pwd):/backup \
-  alpine tar czf /backup/minio-backup.tar.gz -C /data .
-```
+# === Gradle ===
+./gradlew :hexagonal-payment:clean bootJar    # 빌드
+./gradlew :hexagonal-payment:bootRun          # 로컬 실행
 
-**데이터 복원**
+# === Docker Build ===
+docker build -t hexagonal-payment:1.0.0 .     # 이미지 빌드
+docker run --rm -p 10001:10001 hexagonal-payment:1.0.0  # 테스트 실행
 
-```bash
-# MySQL 데이터 복원
-docker exec -i local-mysql mysql -u admin -padmin module < backup.sql
+# === Kubernetes ===
+kubectl apply -f k8s/hexagonal-payment/       # 전체 배포
+kubectl delete -f k8s/hexagonal-payment/      # 전체 삭제
+kubectl rollout restart deployment hexagonal-payment -n payment  # 재시작
+kubectl logs -f -n payment -l app=hexagonal-payment  # 로그
 
-# MinIO 데이터 복원
-docker run --rm -v docker_minio-data:/data -v $(pwd):/backup \
-  alpine tar xzf /backup/minio-backup.tar.gz -C /data
+# === 상태 확인 ===
+kubectl get all -n payment                    # 전체 리소스
+kubectl describe pod <pod-name> -n payment    # Pod 상세
+kubectl top pod -n payment                    # 리소스 사용량
 ```
 
 ---
 
-### 환경 변수 커스터마이징
+## 🎯 다음 단계
 
-**.env 파일 생성** (docker-compose.yml과 같은 디렉토리)
+### 개선 계획
 
-```bash
-# MySQL 설정
-MYSQL_ROOT_PASSWORD=custom_root_password
-MYSQL_DATABASE=custom_database
-MYSQL_USER=custom_user
-MYSQL_PASSWORD=custom_password
+1. **CI/CD 파이프라인**
+    - GitHub Actions
+    - 자동 빌드/배포
 
-# MinIO 설정
-MINIO_ROOT_USER=custom_admin
-MINIO_ROOT_PASSWORD=custom_password123
+2. **모니터링**
+    - Prometheus + Grafana
+    - Spring Boot Admin
 
-# Kafka 설정
-KAFKA_BROKER_ID=1
-```
+3. **로깅**
+    - ELK Stack
+    - Fluentd
 
----
-
-### 네트워크 설정
-
-**기본 네트워크**
-
-- Docker Compose는 자동으로 `docker_default` 네트워크 생성
-- 모든 서비스는 서비스명으로 서로 통신 가능
-
-**커스텀 네트워크 추가**
-
-```yaml
-networks:
-  backend:
-    driver: bridge
-  frontend:
-    driver: bridge
-
-services:
-  mysql:
-    networks:
-      - backend
-
-  kafka:
-    networks:
-      - backend
-      - frontend
-```
+4. **테스트**
+    - Testcontainers
+    - Integration Tests
 
 ---
 
-## 🔍 문제 해결
-
-### 포트 충돌 발생 시
-
-**사용 중인 포트 확인**
-
-```bash
-# Mac/Linux
-lsof -i :13306
-
-# Windows
-netstat -ano | findstr :13306
-```
-
-**포트 변경**
-
-```yaml
-# docker-compose.yml에서 호스트 포트만 변경
-services:
-  mysql:
-    ports:
-      - "23306:3306"  # 다른 포트로 변경
-```
-
----
-
-### 컨테이너 시작 실패
-
-**로그 확인**
-
-```bash
-# 전체 로그
-docker compose logs
-
-# 특정 서비스 로그
-docker compose logs mysql
-
-# 실시간 로그 추적
-docker compose logs -f kafka
-```
-
-**컨테이너 재시작**
-
-```bash
-# 특정 서비스 재시작
-docker compose restart mysql
-
-# 전체 재시작
-docker compose restart
-```
-
----
-
-### 디스크 공간 부족
-
-**사용하지 않는 리소스 정리**
-
-```bash
-# 중지된 컨테이너 제거
-docker container prune
-
-# 사용하지 않는 이미지 제거
-docker image prune -a
-
-# 사용하지 않는 볼륨 제거
-docker volume prune
-
-# 전체 정리 (주의!)
-docker system prune -a --volumes
-```
-
----
-
-### MySQL 연결 오류
-
-**헬스체크 확인**
-
-```bash
-docker compose ps mysql
-```
-
-**수동 연결 테스트**
-
-```bash
-docker exec -it local-mysql mysql -u admin -padmin -e "SELECT 1"
-```
-
-**권한 문제 해결**
-
-```bash
-docker exec -it local-mysql mysql -u root -proot
-
-# MySQL 콘솔에서
-GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%';
-FLUSH PRIVILEGES;
-```
-
----
-
-### Kafka 연결 오류
-
-**Kafka 상태 확인**
-
-```bash
-# Zookeeper 연결 확인
-docker exec local-zookeeper zkServer.sh status
-
-# Kafka 브로커 확인
-docker exec local-kafka kafka-broker-api-versions \
-  --bootstrap-server localhost:9092
-```
-
-**토픽 목록 확인**
-
-```bash
-docker exec local-kafka kafka-topics \
-  --list --bootstrap-server localhost:9092
-```
-
----
-
-### MinIO 버킷 생성 실패
-
-**수동 버킷 생성**
-
-```bash
-# MinIO 클라이언트 설정
-docker exec -it local-minio mc alias set localminio \
-  http://localhost:9000 admin admin123
-
-# 버킷 생성
-docker exec -it local-minio mc mb localminio/my-bucket
-
-# 버킷 목록 확인
-docker exec -it local-minio mc ls localminio
-```
-
----
-
-### SonarQube 메모리 부족
-
-**메모리 제한 증가**
-
-```yaml
-services:
-  sonarqube:
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-      - SONAR_JAVA_OPTS=-Xmx2g -Xms512m  # 메모리 증가
-    deploy:
-      resources:
-        limits:
-          memory: 4g
-```
-
----
-
-## 📚 추가 리소스
-
-### 공식 문서
-
-- [Docker Compose 문서](https://docs.docker.com/compose/)
-- [MySQL 8.0 문서](https://dev.mysql.com/doc/refman/8.0/en/)
-- [Apache Kafka 문서](https://kafka.apache.org/documentation/)
-- [MinIO 문서](https://min.io/docs/minio/linux/index.html)
-- [SonarQube 문서](https://docs.sonarqube.org/latest/)
-
-### 유용한 명령어 모음
-
-**전체 상태 확인**
-
-```bash
-# 한 번에 모든 서비스 상태 확인
-docker compose ps && \
-docker compose top && \
-docker stats --no-stream
-```
-
-**리소스 사용량 모니터링**
-
-```bash
-# 실시간 리소스 사용량
-docker stats
-
-# 특정 컨테이너만 모니터링
-docker stats local-mysql local-kafka
-```
-
-**로그 필터링**
-
-```bash
-# 에러 로그만 확인
-docker compose logs | grep -i error
-
-# 최근 100줄만 확인
-docker compose logs --tail=100
-```
-
----
-
-## 🎯 베스트 프랙티스
-
-### 1. 개발 시작 전
-
-```bash
-# 모든 서비스 시작 및 헬스체크 대기
-docker compose up -d && \
-docker compose ps --format json | jq '.[] | {name: .Name, health: .Health}'
-```
-
-### 2. 개발 종료 시
-
-```bash
-# 데이터 유지하면서 컨테이너만 중지
-docker compose stop
-```
-
-### 3. 완전 초기화가 필요한 경우
-
-```bash
-# 모든 데이터 삭제 후 재시작
-docker compose down -v && \
-docker compose up -d
-```
-
-### 4. 정기적인 정리
-
-```bash
-# 주 1회 사용하지 않는 리소스 정리
-docker system prune -f
-```
-
----
-
-## 📝 변경 이력
-
-| 날짜         | 버전    | 변경 내용    |
-|------------|-------|----------|
-| 2025-11-21 | 1.0.0 | 초기 버전 작성 |
-
----
-
-## 👥 문의 및 지원
-
-문제가 발생하거나 개선 사항이 있다면:
-
-1. 로그 확인: `docker compose logs -f`
-2. 이슈 등록 또는 팀 채널에 문의
-3. 이 문서의 [문제 해결](#문제-해결) 섹션 참고
-
----
+## 📚 참고 자료
+
+- [Spring Boot on Kubernetes](https://spring.io/guides/gs/spring-boot-kubernetes/)
+- [Rancher Desktop Documentation](https://docs.rancherdesktop.io/)
+- [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)

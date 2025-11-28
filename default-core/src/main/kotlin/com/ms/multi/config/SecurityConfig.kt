@@ -12,15 +12,16 @@ class SecurityConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .csrf { csrf -> csrf.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    // 인증 없이 접근 가능한 경로
+                    // API 엔드포인트
                     .requestMatchers(
                         "/api/cache/**",
                         "/api/debug/**",
                         "/api/batch/**",
                         "/api/payments/**",
-                        "/actuator/health",
+                        "/actuator/**",
                         "/error",
                     ).permitAll()
                     // 나머지는 인증 필요
