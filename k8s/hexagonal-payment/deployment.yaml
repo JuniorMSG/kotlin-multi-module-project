@@ -1,0 +1,98 @@
+# k8s/hexagonal-payment/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hexagonal-payment
+  namespace: payment
+  labels:
+    app: hexagonal-payment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hexagonal-payment
+  template:
+    metadata:
+      labels:
+        app: hexagonal-payment
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: hexagonal-payment
+          image: hexagonal-payment:1.0.0
+          imagePullPolicy: Never  # 로컬 이미지 사용
+          ports:
+            - containerPort: 10001
+              name: http
+            - containerPort: 5005
+              name: debug
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: SPRING_DATASOURCE_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hexagonal-payment-secret
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: SPRING_DATA_REDIS_HOST
+            - name: SPRING_DATA_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: SPRING_DATA_REDIS_PORT
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hexagonal-payment-secret
+                  key: SPRING_DATA_REDIS_PASSWORD
+            - name: JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: hexagonal-payment-config
+                  key: JAVA_OPTS
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 10001
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 10001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      # Minikube 사용 시 hostAliases 추가 (host.docker.internal 해결)
+      # hostAliases:
+      # - ip: "192.168.1.100"  # 실제 호스트 IP로 변경
+      #   hostnames:
+      #   - "host.docker.internal"
