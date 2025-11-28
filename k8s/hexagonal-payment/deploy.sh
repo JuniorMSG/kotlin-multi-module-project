@@ -23,13 +23,15 @@ kubectl delete configmap hexagonal-payment-config -n payment 2>/dev/null || true
 kubectl delete secret hexagonal-payment-secret -n payment 2>/dev/null || true
 
 echo "⏳ 삭제 대기..."
-sleep 10
+sleep 5
+
+
+echo "🔐 Secret 적용..."
+kubectl apply -f secret.yaml
 
 echo "📝 ConfigMap 적용 (IP 치환: ${HOST_IP})..."
 cat configmap.yaml | sed "s/\${HOST_IP}/${HOST_IP}/g" | kubectl apply -f -
 
-echo "🔐 Secret 적용..."
-kubectl apply -f secret.yaml
 
 echo "🚀 Deployment 적용..."
 kubectl apply -f deployment.yaml
@@ -38,7 +40,7 @@ echo "🌐 Service 적용..."
 kubectl apply -f service.yaml
 
 echo "⏳ Pod 시작 대기..."
-sleep 15
+sleep 10
 
 echo ""
 echo "📊 현재 상태:"

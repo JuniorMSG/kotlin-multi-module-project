@@ -1,370 +1,470 @@
-# Kotlin Multi Module Project Structure
+# 📋 프로젝트 인프라 문서 업데이트
 
-## 📁 전체 프로젝트 구조
+## 🏗️ 전체 아키텍처
 
 ```
-kotlin-multi-module-project/              ← 루트 프로젝트
-├── .github/                              ← GitHub 설정
-├── .gradle/                              ← Gradle 캐시
-├── .idea/                                ← IntelliJ IDEA 설정
-├── .kotlin/                              ← Kotlin 컴파일 캐시
-├── build/                                ← 루트 빌드 출력
+┌─────────────────────────────────────────────────────────────┐
+│  로컬 개발 환경                                                │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Docker Compose (Host)                               │   │
+│  │                                                       │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │   │
+│  │  │  MySQL   │  │  Redis   │  │  Kafka+Zookeeper │  │   │
+│  │  │  :13306  │  │  :16379  │  │  :19092/:12181   │  │   │
+│  │  └──────────┘  └──────────┘  └──────────────────┘  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                            ▲                                 │
+│                            │ localhost 접근                   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Kubernetes (Rancher Desktop - Lima VM)             │   │
+│  │                                                       │   │
+│  │  ┌─────────────────────────────────────────────┐    │   │
+│  │  │  hexagonal-payment Pod                      │    │   │
+│  │  │  - hostNetwork: true                        │    │   │
+│  │  │  - Port: 10001 (HTTP), 5005 (Debug)        │    │   │
+│  │  └─────────────────────────────────────────────┘    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 업데이트된 프로젝트 구조
+
+```
+kotlin-multi-module-project/
+├── .github/
+├── .gradle/
+├── .idea/
+├── .kotlin/
+├── build/
 │
-├── default-api/                          ← API 모듈
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
+├── default-api/
+├── default-batch/
+├── default-consumer/
+├── default-core/
+├── default-producer/
+├── exercise/
 │
-├── default-batch/                        ← Batch 모듈
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
-│
-├── default-consumer/                     ← Consumer 모듈
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
-│
-├── default-core/                         ← Core 모듈 (공통)
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
-│
-├── default-producer/                     ← Producer 모듈
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
-│
-├── exercise/                             ← 연습용 모듈
-│   ├── src/
-│   ├── build/
-│   └── build.gradle.kts
-│
-├── hexagonal-payment/                    ← Payment 모듈 (Hexagonal Architecture)
+├── hexagonal-payment/                    ⭐ 주요 모듈
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── kotlin/
+│   │   │   │   └── com/ms/multi/
+│   │   │   │       ├── adapter/
+│   │   │   │       │   ├── in/web/      ← REST Controllers
+│   │   │   │       │   └── out/         ← JPA Repositories, Redis
+│   │   │   │       ├── application/     ← Use Cases
+│   │   │   │       ├── domain/          ← Entities, Value Objects
+│   │   │   │       └── config/          ← Spring Configuration
 │   │   │   └── resources/
-│   │   │       ├── application.yml
-│   │   │       ├── application-local.yml
-│   │   │       └── application-k8s.yml
+│   │   │       ├── application.yml       ← 기본 설정
+│   │   │       ├── application-local.yml ← 로컬 개발
+│   │   │       └── application-k8s.yml   ← K8s 환경
 │   │   └── test/
 │   ├── build/
 │   │   └── libs/
-│   │       └── hexagonal-payment-*.jar   ← 빌드된 JAR
+│   │       └── hexagonal-payment-0.0.1-SNAPSHOT.jar
 │   ├── build.gradle.kts
-│   ├── Dockerfile                        ← Docker 이미지 빌드용
-│   └── deploy.sh                         ← 배포 스크립트
+│   ├── Dockerfile                        ← 멀티스테이지 빌드
+│   └── deploy.sh                         ← 배포 자동화
 │
-├── init/                                 ← 초기화 스크립트
-├── init-scripts/                         ← Gradle init 스크립트
+├── k8s/                                  ⭐ Kubernetes 매니페스트
+│   └── hexagonal-payment/
+│       ├── namespace.yaml                ← payment 네임스페이스
+│       ├── configmap.yaml                ← 환경 설정
+│       ├── secret.yaml                   ← 민감 정보
+│       ├── deployment.yaml               ← Pod 배포 (hostNetwork: true)
+│       ├── service.yaml                  ← ClusterIP Service
+│       └── deploy.sh                     ← 전체 배포 스크립트
 │
-├── k8s/                                  ← Kubernetes 매니페스트
-│   ├── hexagonal-payment/
-
+├── init-scripts/                         ⭐ DB 초기화
+│   └── 01-init-hexagonal-payment.sql     ← MySQL 스키마/데이터
 │
-├── gradle/                               ← Gradle Wrapper
-│   └── wrapper/
-├── gradlew                               ← Gradle 실행 스크립트 (Unix)
-├── gradlew.bat                           ← Gradle 실행 스크립트 (Windows)
-├── settings.gradle.kts                   ← Gradle 설정
-└── build.gradle.kts                      ← 루트 빌드 설정
+├── docker-compose.yml                    ⭐ 인프라 서비스
+├── gradle/
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+└── build.gradle.kts
 ```
 
 ---
 
-## 🎯 모듈별 역할
+## 🐳 Docker Compose 구성
 
-| 모듈                    | 역할                 | 의존성          |
-|-----------------------|--------------------|--------------|
-| **default-core**      | 공통 도메인, 유틸리티       | -            |
-| **default-api**       | REST API           | default-core |
-| **default-batch**     | 배치 작업              | default-core |
-| **default-consumer**  | 메시지 소비자            | default-core |
-| **default-producer**  | 메시지 생산자            | default-core |
-| **hexagonal-payment** | 결제 시스템 (Hexagonal) | 독립 모듈        |
-| **exercise**          | 학습/테스트용            | -            |
+### 서비스 목록
 
----
+| 서비스 | 이미지 | 포트 | 용도 |
+|--------|--------|------|------|
+| **mysql** | mysql:8.4 | 13306 | 메인 데이터베이스 |
+| **redis** | redis:7.2-alpine | 16379 | 캐시 & 세션 |
+| **zookeeper** | confluentinc/cp-zookeeper:7.6.0 | 12181 | Kafka 코디네이터 |
+| **kafka** | confluentinc/cp-kafka:7.6.0 | 19092 | 메시지 브로커 |
 
-## 🔧 기술 스택
+### MySQL 설정
 
-### Language & Framework
-
-- **Kotlin** 1.9.21+
-- **Java** 21 (Amazon Corretto)
-- **Spring Boot** 3.x
-- **Gradle** 8.5+
-
-### Infrastructure
-
-- **MySQL** 8.0
-- **Redis** 7.x
-- **Kubernetes**
-- **Docker**
-
----
-
-## 🚀 hexagonal-payment 모듈 상세
-
-### 구조
-
-```
-hexagonal-payment/
-├── src/
-│   ├── main/
-│   │   ├── kotlin/
-│   │   │   └── com/example/payment/
-│   │   │       ├── adapter/          ← Adapter Layer
-│   │   │       │   ├── in/           ← Inbound (Controller, Event Listener)
-│   │   │       │   └── out/          ← Outbound (Repository, External API)
-│   │   │       ├── application/      ← Application Layer (Use Cases)
-│   │   │       ├── domain/           ← Domain Layer (Entities, Value Objects)
-│   │   │       └── config/           ← Configuration
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       ├── application-local.yml
-│   │       └── application-k8s.yml
-│   └── test/
-├── build.gradle.kts
-├── Dockerfile
-└── deploy.sh
+```yaml
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: module
+    MYSQL_USER: admin
+    MYSQL_PASSWORD: admin
+  volumes:
+    - mysql-data:/var/lib/mysql
+    - ./init-scripts/01-init-hexagonal-payment.sql:/docker-entrypoint-initdb.d/
 ```
 
-### Dependencies
+**초기화 스크립트:**
+- `hexagonal_payment` 데이터베이스 생성
+- `payment_user` 사용자 생성 (password: payment123)
+- 필요한 테이블 자동 생성
 
-- Spring Boot Starter Web
-- Spring Boot Starter Data JPA
-- Spring Boot Starter Data Redis
-- Spring Boot Starter Cache (Caffeine)
-- Spring Boot Starter Validation
-- Spring Boot Starter Actuator
-- MySQL Connector
-- Jackson Kotlin Module
-- Kotlin Reflect & Stdlib
+### Redis 설정
 
-### 빌드 산출물
-
-- **JAR 위치**: `hexagonal-payment/build/libs/hexagonal-payment-*.jar`
-- **Docker 이미지**: `hexagonal-payment:latest`
+```yaml
+redis:
+  command: redis-server --requirepass admin123
+  ports:
+    - "16379:6379"
+```
 
 ---
 
-## 📦 빌드 명령어
+## ☸️ Kubernetes 배포 구성
 
-### 전체 프로젝트 빌드
+### Namespace
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payment
+```
+
+### ConfigMap (환경 설정)
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hexagonal-payment-config
+  namespace: payment
+data:
+  SPRING_PROFILES_ACTIVE: "k8s"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://localhost:13306/hexagonal_payment?..."
+  SPRING_DATASOURCE_USERNAME: "payment_user"
+  SPRING_DATA_REDIS_HOST: "localhost"
+  SPRING_DATA_REDIS_PORT: "16379"
+  SERVER_PORT: "10001"
+  JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC"
+```
+
+### Secret (민감 정보)
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hexagonal-payment-secret
+  namespace: payment
+type: Opaque
+data:
+  SPRING_DATASOURCE_PASSWORD: cGF5bWVudDEyMw==  # payment123
+  SPRING_DATA_REDIS_PASSWORD: YWRtaW4xMjM=      # admin123
+```
+
+### Deployment (핵심 설정)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hexagonal-payment
+  namespace: payment
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostNetwork: true                    # ⭐ Host 네트워크 사용
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: hexagonal-payment
+          image: hexagonal-payment:1.0.0
+          imagePullPolicy: Never           # 로컬 이미지 사용
+          ports:
+            - containerPort: 10001         # HTTP
+            - containerPort: 5005          # Debug
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 10001
+            initialDelaySeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 10001
+            initialDelaySeconds: 30
+```
+
+**주요 특징:**
+- `hostNetwork: true` → localhost로 Docker 서비스 접근
+- `imagePullPolicy: Never` → 로컬 빌드 이미지 사용
+- Health Check → Spring Actuator 활용
+
+### Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hexagonal-payment
+  namespace: payment
+spec:
+  type: ClusterIP
+  selector:
+    app: hexagonal-payment
+  ports:
+    - name: http
+      port: 10001
+      targetPort: 10001
+    - name: debug
+      port: 5005
+      targetPort: 5005
+```
+
+---
+
+## 🚀 배포 프로세스
+
+### 1. 인프라 시작
 
 ```bash
-./gradlew clean build -x test
+# Docker Compose 서비스 시작
+docker-compose up -d
+
+# 상태 확인
+docker-compose ps
+docker-compose logs -f mysql redis
 ```
 
-### 특정 모듈 빌드
+### 2. 애플리케이션 빌드
 
 ```bash
-# hexagonal-payment 모듈만
-./gradlew :hexagonal-payment:clean :hexagonal-payment:build -x test
-
-# default-api 모듈만
-./gradlew :default-api:clean :default-api:build -x test
-```
-
-### JAR 확인
-
-```bash
-# hexagonal-payment
-ls -lh hexagonal-payment/build/libs/
-
-# default-api
-ls -lh default-api/build/libs/
-```
-
----
-
-## 🐳 Docker 빌드
-
-### hexagonal-payment
-
-```bash
-# 1. JAR 빌드
-./gradlew :hexagonal-payment:build -x test
-
-# 2. Docker 이미지 빌드
 cd hexagonal-payment
-docker build -t hexagonal-payment:latest .
 
-# 3. 이미지 확인
+# Gradle 빌드
+./gradlew clean bootJar
+
+# Docker 이미지 빌드
+docker build -t hexagonal-payment:1.0.0 .
+
+# 이미지 확인
 docker images | grep hexagonal-payment
-
-# 4. Java 버전 확인
-docker run --rm hexagonal-payment:latest java -version
 ```
 
----
-
-## ☸️ Kubernetes 배포
-
-### Namespace 생성
+### 3. Kubernetes 배포
 
 ```bash
-kubectl apply -f k8s/hexagonal-payment/namespace.yaml
+cd ../k8s/hexagonal-payment
+
+# 전체 배포 (자동화 스크립트)
+./deploy.sh
+
+# 또는 수동 배포
+kubectl apply -f namespace.yaml
+kubectl apply -f secret.yaml
+kubectl apply -f configmap.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
 ```
 
-### 전체 배포
-
-```bash
-kubectl apply -f k8s/hexagonal-payment/
-```
-
-### 배포 확인
+### 4. 배포 확인
 
 ```bash
 # Pod 상태
-kubectl get pods -n payment
+kubectl get pods -n payment -w
 
 # 로그 확인
 kubectl logs -f -n payment -l app=hexagonal-payment
 
 # 서비스 확인
 kubectl get svc -n payment
-```
 
-### 접근
-
-```bash
-# NodePort 접근
-curl http://localhost:30001/actuator/health
-
-# Port Forward
-kubectl port-forward -n payment service/hexagonal-payment 10001:10001
+# Health Check
 curl http://localhost:10001/actuator/health
 ```
 
 ---
 
-## 🔍 디버깅
+## 🔧 환경별 설정
 
-### Remote Debug 설정
+### Local (IDE 실행)
+
+```yaml
+# application-local.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:13306/hexagonal_payment
+  data:
+    redis:
+      host: localhost
+      port: 16379
+```
+
+### K8s (컨테이너 실행)
+
+```yaml
+# application-k8s.yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:13306/hexagonal_payment  # hostNetwork로 접근
+  data:
+    redis:
+      host: localhost
+      port: 16379
+```
+
+**동일한 localhost 사용 가능 (hostNetwork 덕분)**
+
+---
+
+## 🐛 디버깅
+
+### IntelliJ Remote Debug 설정
+
+1. **Run → Edit Configurations**
+2. **Add New Configuration → Remote JVM Debug**
+3. **설정:**
+   ```
+   Host: localhost
+   Port: 5005
+   ```
+4. **Debug 모드로 실행**
+
+### Pod 내부 접근
 
 ```bash
-# Debug 포트 포워딩
-kubectl port-forward -n payment service/hexagonal-payment 5005:5005
-```
+# Shell 접속
+kubectl exec -it -n payment <pod-name> -- /bin/sh
 
-**IntelliJ IDEA**:
+# 환경 변수 확인
+kubectl exec -n payment <pod-name> -- env | grep SPRING
 
-```
-Run → Edit Configurations → Remote JVM Debug
-- Host: localhost
-- Port: 5005
+# 로그 실시간 확인
+kubectl logs -f -n payment <pod-name>
 ```
 
 ---
 
-## 📝 환경 변수
+## 📊 리소스 사용량
 
-### hexagonal-payment 필수 환경 변수
+### 권장 사양
 
-| 변수명                          | 설명           | 예시                          |
-|------------------------------|--------------|-----------------------------|
-| `SPRING_PROFILES_ACTIVE`     | 활성 프로파일      | `k8s`, `local`              |
-| `SPRING_DATASOURCE_URL`      | MySQL 연결 URL | `jdbc:mysql://host:3306/db` |
-| `SPRING_DATASOURCE_USERNAME` | MySQL 사용자명   | `payment_user`              |
-| `SPRING_DATASOURCE_PASSWORD` | MySQL 비밀번호   | `payment123`                |
-| `SPRING_DATA_REDIS_HOST`     | Redis 호스트    | `localhost`                 |
-| `SPRING_DATA_REDIS_PORT`     | Redis 포트     | `6379`                      |
-| `SPRING_DATA_REDIS_PASSWORD` | Redis 비밀번호   | `admin123`                  |
+| 항목 | 최소 | 권장 |
+|------|------|------|
+| **CPU** | 2 Core | 4 Core |
+| **Memory** | 4 GB | 8 GB |
+| **Disk** | 20 GB | 50 GB |
+
+### Rancher Desktop 설정
+
+```
+Memory: 6 GB
+CPUs: 4
+Disk: 40 GB
+```
 
 ---
 
-## 🛠️ 유용한 명령어
+## 🔐 보안 고려사항
 
-### Gradle
+### Secret 관리
 
 ```bash
-# 의존성 확인
-./gradlew :hexagonal-payment:dependencies
+# Base64 인코딩
+echo -n "payment123" | base64
 
-# 태스크 목록
-./gradlew :hexagonal-payment:tasks
-
-# 빌드 캐시 삭제
-./gradlew clean
+# Secret 생성
+kubectl create secret generic hexagonal-payment-secret \
+  --from-literal=SPRING_DATASOURCE_PASSWORD=payment123 \
+  --from-literal=SPRING_DATA_REDIS_PASSWORD=admin123 \
+  -n payment
 ```
 
-### Docker
+### 프로덕션 권장사항
+
+- ❌ hostNetwork 사용 금지
+- ✅ Managed Database 사용 (RDS, ElastiCache)
+- ✅ Secret Manager 사용 (AWS Secrets Manager, Vault)
+- ✅ Network Policy 적용
+- ✅ RBAC 설정
+
+---
+
+## 📝 주요 명령어 모음
 
 ```bash
-# 이미지 삭제
-docker rmi hexagonal-payment:latest
+# === Docker ===
+docker-compose up -d                    # 인프라 시작
+docker-compose down -v                  # 인프라 정지 + 볼륨 삭제
+docker-compose logs -f mysql            # MySQL 로그
 
-# 컨테이너 로그
-docker logs <container-id>
+# === Gradle ===
+./gradlew :hexagonal-payment:clean bootJar    # 빌드
+./gradlew :hexagonal-payment:bootRun          # 로컬 실행
 
-# 컨테이너 접속
-docker exec -it <container-id> sh
+# === Docker Build ===
+docker build -t hexagonal-payment:1.0.0 .     # 이미지 빌드
+docker run --rm -p 10001:10001 hexagonal-payment:1.0.0  # 테스트 실행
+
+# === Kubernetes ===
+kubectl apply -f k8s/hexagonal-payment/       # 전체 배포
+kubectl delete -f k8s/hexagonal-payment/      # 전체 삭제
+kubectl rollout restart deployment hexagonal-payment -n payment  # 재시작
+kubectl logs -f -n payment -l app=hexagonal-payment  # 로그
+
+# === 상태 확인 ===
+kubectl get all -n payment                    # 전체 리소스
+kubectl describe pod <pod-name> -n payment    # Pod 상세
+kubectl top pod -n payment                    # 리소스 사용량
 ```
 
-### Kubernetes
+---
 
-```bash
-# 전체 리소스 확인
-kubectl get all -n payment
+## 🎯 다음 단계
 
-# Pod 재시작
-kubectl rollout restart deployment/hexagonal-payment -n payment
+### 개선 계획
 
-# ConfigMap 확인
-kubectl get configmap -n payment
+1. **CI/CD 파이프라인**
+    - GitHub Actions
+    - 자동 빌드/배포
 
-# Secret 확인
-kubectl get secret -n payment
-```
+2. **모니터링**
+    - Prometheus + Grafana
+    - Spring Boot Admin
+
+3. **로깅**
+    - ELK Stack
+    - Fluentd
+
+4. **테스트**
+    - Testcontainers
+    - Integration Tests
 
 ---
 
-## 📚 참고 사항
+## 📚 참고 자료
 
-### Port 정보
-
-- **10001**: hexagonal-payment HTTP
-- **5005**: hexagonal-payment Debug
-- **13306**: MySQL (로컬)
-- **16379**: Redis (로컬)
-- **30001**: hexagonal-payment NodePort (K8s)
-- **30005**: hexagonal-payment Debug NodePort (K8s)
-
-### Profile별 설정
-
-- **local**: 로컬 개발 환경 (application-local.yml)
-- **k8s**: Kubernetes 환경 (application-k8s.yml)
-- **default**: 기본 설정 (application.yml)
-
----
-
-## 🎓 AI Assistant를 위한 정보
-
-### 중요한 경로
-
-- **프로젝트 루트**: `kotlin-multi-module-project/`
-- **hexagonal-payment 모듈**: `kotlin-multi-module-project/hexagonal-payment/`
-- **hexagonal-payment JAR**: `hexagonal-payment/build/libs/hexagonal-payment-*.jar`
-- **Dockerfile**: `hexagonal-payment/Dockerfile`
-- **K8s 매니페스트**: `k8s/hexagonal-payment/`
-
-### 빌드 컨텍스트
-
-- Dockerfile이 `hexagonal-payment/` 안에 있을 때
-- 빌드 컨텍스트는 `hexagonal-payment/` 디렉토리
-- JAR 경로: `COPY build/libs/*.jar app.jar`
-
-### 모듈 독립성
-
-- `hexagonal-payment`는 **독립 모듈**
-- `default-api`, `default-core` 등과 **의존성 없음**
-- 각 모듈은 독립적으로 빌드 가능
-
----
-
-## 📄 License
-
-Proprietary - All rights reserved
+- [Spring Boot on Kubernetes](https://spring.io/guides/gs/spring-boot-kubernetes/)
+- [Rancher Desktop Documentation](https://docs.rancherdesktop.io/)
+- [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
