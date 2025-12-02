@@ -96,12 +96,12 @@ kotlin-multi-module-project/
 
 ### 서비스 목록
 
-| 서비스 | 이미지 | 포트 | 용도 |
-|--------|--------|------|------|
-| **mysql** | mysql:8.4 | 13306 | 메인 데이터베이스 |
-| **redis** | redis:7.2-alpine | 16379 | 캐시 & 세션 |
+| 서비스           | 이미지                             | 포트    | 용도          |
+|---------------|---------------------------------|-------|-------------|
+| **mysql**     | mysql:8.4                       | 13306 | 메인 데이터베이스   |
+| **redis**     | redis:7.2-alpine                | 16379 | 캐시 & 세션     |
 | **zookeeper** | confluentinc/cp-zookeeper:7.6.0 | 12181 | Kafka 코디네이터 |
-| **kafka** | confluentinc/cp-kafka:7.6.0 | 19092 | 메시지 브로커 |
+| **kafka**     | confluentinc/cp-kafka:7.6.0     | 19092 | 메시지 브로커     |
 
 ### MySQL 설정
 
@@ -118,6 +118,7 @@ mysql:
 ```
 
 **초기화 스크립트:**
+
 - `hexagonal_payment` 데이터베이스 생성
 - `payment_user` 사용자 생성 (password: payment123)
 - 필요한 테이블 자동 생성
@@ -217,6 +218,7 @@ spec:
 ```
 
 **주요 특징:**
+
 - `hostNetwork: true` → localhost로 Docker 서비스 접근
 - `imagePullPolicy: Never` → 로컬 빌드 이미지 사용
 - Health Check → Spring Actuator 활용
@@ -370,11 +372,11 @@ kubectl logs -f -n payment <pod-name>
 
 ### 권장 사양
 
-| 항목 | 최소 | 권장 |
-|------|------|------|
-| **CPU** | 2 Core | 4 Core |
-| **Memory** | 4 GB | 8 GB |
-| **Disk** | 20 GB | 50 GB |
+| 항목         | 최소     | 권장     |
+|------------|--------|--------|
+| **CPU**    | 2 Core | 4 Core |
+| **Memory** | 4 GB   | 8 GB   |
+| **Disk**   | 20 GB  | 50 GB  |
 
 ### Rancher Desktop 설정
 
