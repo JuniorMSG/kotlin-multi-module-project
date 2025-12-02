@@ -7,9 +7,5 @@ import org.springframework.boot.runApplication
 class DefaultGatewayApplication
 
 fun main(args: Array<String>) {
-    val core = HelloCore()
-    core.hello()
-    HelloCore.hello()
-
     runApplication<DefaultGatewayApplication>(*args)
 }

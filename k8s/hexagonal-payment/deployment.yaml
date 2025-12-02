@@ -19,7 +19,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: hexagonal-payment
-          image: hexagonal-payment:1.0.0
+          image: hexagonal-payment:0.0.1-SNAPSHOT
           imagePullPolicy: Never
           ports:
             - containerPort: 10001
