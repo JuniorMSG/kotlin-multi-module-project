@@ -1,0 +1,5 @@
+###
+# curl http://localhost:10000/api/payments
+GET http://localhost:10000/api/payments
+
+###

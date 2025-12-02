@@ -42,6 +42,7 @@ class CacheTypeChecker(
 
         logger.info("")
         logger.info("=".repeat(70))
+        logger.info("✅ BUILD_VERSION_0001")
 
         // 어떤 캐시가 선택되었는지 출력
         when (cacheManager) {
