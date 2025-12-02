@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: gateway
+  labels:
+    app: api-gateway
+    version: v1
+spec:
+  replicas: 2                          # HA 구성
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "10000"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      # hostNetwork 사용 안 함 (K8s Service Discovery 활용)
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+
+      containers:
+        - name: api-gateway
+          image: api-gateway:1.0.0
+          imagePullPolicy: Never         # 로컬 개발용
+
+          ports:
+            - name: http
+              containerPort: 10000
+              protocol: TCP
+            - name: debug
+              containerPort: 5005
+              protocol: TCP
+
+          # 환경 변수 (ConfigMap)
+          envFrom:
+            - configMapRef:
+                name: api-gateway-config
+            - secretRef:
+                name: api-gateway-secret
+
+          # 추가 환경 변수
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+          # 리소스 제한
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          # Liveness Probe
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 10000
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness Probe
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 10000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Startup Probe (Spring Boot 느린 시작 대비)
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 10000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          # Volume Mounts (로그 등)
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+
+      # Volumes
+      volumes:
+        - name: logs
+          emptyDir: {}
+
+      # 재시작 정책
+      restartPolicy: Always
+
+      # 종료 대기 시간
+      terminationGracePeriodSeconds: 30
