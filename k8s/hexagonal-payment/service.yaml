@@ -12,9 +12,9 @@ spec:
       protocol: TCP
       port: 10001
       targetPort: 10001
-      nodePort: 30001
+#      nodePort: 30001
     - name: debug
       protocol: TCP
-      port: 5005
-      targetPort: 5005
-      nodePort: 30005
+      port: 20002
+      targetPort: 20002
+#      nodePort: 30005
