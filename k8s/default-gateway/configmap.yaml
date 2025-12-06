@@ -1,0 +1,26 @@
+# k8s/default-gateway/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: default-gateway
+data:
+  # Spring Profile
+  SPRING_PROFILES_ACTIVE: "k8s"
+
+  # Server
+  SERVER_PORT: "10000"
+
+  # Host IP (스크립트에서 치환됨)
+  HOST_IP: "${HOST_IP}"
+
+  # Redis (Docker Desktop 호스트)
+  REDIS_HOST: "${HOST_IP}"
+  REDIS_PORT: "6379"
+
+  # Payment Service (로컬 Docker - 10001번)
+  PAYMENT_SERVICE_URL: "http://${HOST_IP}:10001"
+
+  # Logging
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_GATEWAY: "DEBUG"

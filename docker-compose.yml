@@ -137,7 +137,7 @@ services:
 
 volumes:
   mysql-data:
-  redis-data:      # ✅ 추가!
+  redis-data:
   minio-data:
   sonarqube-data:
   sonarqube-extensions:
