@@ -1,0 +1,20 @@
+server:
+  port: 10000
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:16379}
+      password: ${REDIS_PASSWORD}
+
+  cloud:
+    gateway:
+      routes:
+        - id: payment-service
+          uri: http://localhost:10001  # ⭐ hostNetwork 쓰니까 localhost
+          predicates:
+            - Path=/api/payments/**

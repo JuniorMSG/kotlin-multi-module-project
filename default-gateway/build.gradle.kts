@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     // Gateway 핵심
-    implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
 
     // Circuit Breaker (장애 격리)

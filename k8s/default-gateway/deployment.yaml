@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: default-gateway
+  namespace: default-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: default-gateway
+  template:
+    metadata:
+      labels:
+        app: default-gateway
+    spec:
+      hostNetwork: true  # ⭐ 추가!
+      dnsPolicy: ClusterFirstWithHostNet  # ⭐ 추가!
+      containers:
+        - name: default-gateway
+          image: default-gateway:0.0.1-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 10000
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+            - name: SERVER_PORT
+              value: "10000"
+            - name: JAVA_TOOL_OPTIONS  # ⭐ 디버그 포트 제거
+              value: ""
