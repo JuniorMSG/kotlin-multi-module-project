@@ -22,7 +22,7 @@
 │  │  ┌─────────────────────────────────────────────┐    │   │
 │  │  │  hexagonal-payment Pod                      │    │   │
 │  │  │  - hostNetwork: true                        │    │   │
-│  │  │  - Port: 10001 (HTTP), 5005 (Debug)        │    │   │
+│  │  │  - Port: 10001 (HTTP), 20002 (Debug)        │    │   │
 │  │  └─────────────────────────────────────────────┘    │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
@@ -197,7 +197,7 @@ spec:
           imagePullPolicy: Never           # 로컬 이미지 사용
           ports:
             - containerPort: 10001         # HTTP
-            - containerPort: 5005          # Debug
+            - containerPort: 20002          # Debug
           resources:
             requests:
               memory: "512Mi"
@@ -240,8 +240,8 @@ spec:
       port: 10001
       targetPort: 10001
     - name: debug
-      port: 5005
-      targetPort: 5005
+      port: 20002
+      targetPort: 20002
 ```
 
 ---
@@ -349,7 +349,7 @@ spring:
 3. **설정:**
    ```
    Host: localhost
-   Port: 5005
+   Port: 20002
    ```
 4. **Debug 모드로 실행**
 
