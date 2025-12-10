@@ -1,3 +1,7 @@
+server:
+  port: 10001
+
+
 spring:
   datasource:
     # ⭐ localhost 사용 (로컬 개발용)
@@ -35,8 +39,31 @@ spring:
       password: admin123
       timeout: 3000ms
 
-server:
-  port: 10001
+# ⭐⭐⭐ 가장 중요: Actuator Health Probe 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true  # ⭐ Liveness/Readiness Probe 활성화
+      show-details: always  # k8s 환경에서는 always 권장
+      show-components: always
+  health:
+    livenessState:
+      enabled: true  # ⭐ Liveness 상태 활성화
+    readinessState:
+      enabled: true  # ⭐ Readiness 상태 활성화
+    db:
+      enabled: true  # DB Health Check
+    redis:
+      enabled: true  # Redis Health Check
+
+
+
 
 logging:
   level:

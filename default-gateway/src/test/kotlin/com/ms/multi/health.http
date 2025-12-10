@@ -1,0 +1,5 @@
+### Gateway 헬스 체크
+GET http://localhost:10000/actuator/health
+
+#### Payment 서비스 라우팅 테스트
+GET http://localhost:10000/api/payments/test
