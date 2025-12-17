@@ -19,7 +19,7 @@ class SecurityConfig {
                     // API 엔드포인트
                     .requestMatchers(
                         // ⭐ API 엔드포인트 허용 (Gateway에서 들어오는 요청)
-             "/api/**",
+                        "/api/**",
                         "/api/cache/**",
                         "/api/debug/**",
                         "/api/batch/**",
