@@ -32,6 +32,19 @@ services:
       timeout: 5s
       retries: 5
 
+  redis-local:
+    image: redis:7.2-alpine
+    container_name: module-project-redis-local
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-local-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: module-project-zookeeper
@@ -138,6 +151,7 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  redis-local-data:
   minio-data:
   sonarqube-data:
   sonarqube-extensions:
